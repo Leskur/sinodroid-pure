@@ -22,4 +22,7 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# ADB platform-tools 相关依赖
+zip = "2"      # zip 文件解压
+anyhow = "1"   # 错误处理
 
