@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 
@@ -11,12 +11,10 @@ pub mod installer;
 /// - macOS: ~/Library/Application Support/sinodroid-pure/platform-tools
 /// - Linux: ~/.local/share/sinodroid-pure/platform-tools
 pub fn get_platform_tools_dir(app: &AppHandle) -> Result<PathBuf> {
-    let app_data_dir = app
+    Ok(app
         .path()
-        .app_data_dir()
-        .context("Failed to get app data directory")?;
-
-    Ok(app_data_dir.join("platform-tools"))
+        .home_dir()?
+        .join(".sinodroid-pure/platform-tools"))
 }
 
 /// 获取 adb 可执行文件路径
