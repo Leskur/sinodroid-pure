@@ -86,27 +86,10 @@ export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConne
     }
   };
 
-  // 使用历史记录连接
-  const connectFromHistory = async (item: WiFiHistory) => {
-    setConnecting(true);
-    try {
-      const address = `${item.ip}:${item.port}`;
-      const result = await executeAdbCommand(["connect", address]);
-
-      // 检查连接是否真正成功
-      const isSuccess = result.toLowerCase().includes("connected") && !result.toLowerCase().includes("unable") && !result.toLowerCase().includes("cannot");
-
-      if (isSuccess) {
-        toast.success("WiFi 连接成功", { description: address });
-        setTimeout(() => refreshDevices(), 500);
-      } else {
-        toast.error("WiFi 连接失败", { description: result || "连接失败" });
-      }
-    } catch (err) {
-      toast.error("WiFi 连接失败", { description: String(err) });
-    } finally {
-      setConnecting(false);
-    }
+  // 使用历史记录填充输入框
+  const fillFromHistory = (item: WiFiHistory) => {
+    setIp(item.ip);
+    setPort(item.port);
   };
 
   // 清除历史记录
@@ -187,8 +170,7 @@ export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConne
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => connectFromHistory(item)}
-                    disabled={connecting}
+                    onClick={() => fillFromHistory(item)}
                     className="flex-1 justify-start font-mono text-xs h-8 cursor-pointer"
                   >
                     {item.ip}:{item.port}
