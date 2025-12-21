@@ -65,6 +65,7 @@ function App() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string>("");
   const [activeTab, setActiveTab] = useState<TabType>("device");
+  const [autoDetect, setAutoDetect] = useState(true); // 自动检测开关
 
   // 应用管理
   const [appList, setAppList] = useState<string[]>([]);
@@ -109,6 +110,66 @@ function App() {
       toast.error("获取设备列表失败", { description: String(err) });
     }
   };
+
+  // 自动检测设备插拔
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    let previousDeviceCount = 0;
+
+    const checkDeviceChanges = async () => {
+      if (!autoDetect) return; // 如果关闭了自动检测，直接返回
+
+      try {
+        const deviceList = await getDevices();
+        const currentCount = deviceList.length;
+
+        // 检测设备数量变化
+        if (currentCount !== previousDeviceCount) {
+          if (currentCount > previousDeviceCount) {
+            // 新设备连接
+            toast.success("检测到新设备连接", {
+              description: `当前 ${currentCount} 台设备`
+            });
+          } else {
+            // 设备断开
+            toast.info("设备已断开", {
+              description: `剩余 ${currentCount} 台设备`
+            });
+          }
+
+          // 更新设备列表
+          setDevices(deviceList);
+
+          // 自动选择设备
+          if (deviceList.length > 0) {
+            // 如果之前选中的设备还在，保持选择；否则选择第一个
+            const currentDeviceStillConnected = deviceList.some(d => d.id === selectedDevice);
+            if (!currentDeviceStillConnected || !selectedDevice) {
+              setSelectedDevice(deviceList[0].id);
+            }
+          } else {
+            setSelectedDevice("");
+          }
+
+          previousDeviceCount = currentCount;
+        }
+      } catch (err) {
+        // 静默处理错误，避免频繁弹窗
+        console.error("设备检测错误:", err);
+      }
+    };
+
+    // 只在 ready 且开启了自动检测时才启动检测
+    if (ready && autoDetect) {
+      intervalId = setInterval(checkDeviceChanges, 2000); // 每2秒检查一次
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [ready, selectedDevice, autoDetect]);
 
   // 获取应用列表
   const fetchApps = async () => {
@@ -291,14 +352,29 @@ function App() {
                   <CardDescription>选择要操作的设备</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button
-                    onClick={refreshDevices}
-                    className="w-full"
-                    variant="secondary"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    刷新设备
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={refreshDevices}
+                      className="flex-1"
+                      variant="secondary"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      刷新
+                    </Button>
+                    <Button
+                      onClick={() => setAutoDetect(!autoDetect)}
+                      className={`flex-1 ${autoDetect ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-600'}`}
+                      variant={autoDetect ? "default" : "secondary"}
+                    >
+                      {autoDetect ? "自动: 开" : "自动: 关"}
+                    </Button>
+                  </div>
+                  {autoDetect && (
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                      自动检测中 (每2秒)
+                    </div>
+                  )}
                   <ScrollArea className="h-60 rounded-md border">
                     <div className="p-2 space-y-2">
                       {devices.length === 0 ? (
