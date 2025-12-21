@@ -65,53 +65,44 @@ export function DeviceListCard({
                 未发现设备
               </div>
             ) : (
-              devices.map((device) => {
-                const isOnline = device.status === "device";
-                const isSelected = selectedDevice === device.id;
-                const isDisabled = !isOnline;
-
-                return (
-                  <div
-                    key={device.id}
+              devices.map((device) => (
+                <div
+                  key={device.id}
+                  className={cn(
+                    "flex gap-1 items-center",
+                    selectedDevice === device.id && "ring-2 ring-primary rounded-md"
+                  )}
+                >
+                  <Button
+                    variant={selectedDevice === device.id ? "default" : "ghost"}
                     className={cn(
-                      "flex gap-1 items-center",
-                      isSelected && "ring-2 ring-primary rounded-md",
-                      isDisabled && "opacity-50"
+                      "flex-1 justify-start text-left font-mono text-xs",
+                      selectedDevice === device.id && "bg-primary text-primary-foreground"
                     )}
+                    onClick={() => setSelectedDevice(device.id)}
                   >
-                    <Button
-                      variant={isSelected ? "default" : "ghost"}
+                    <span className="truncate">{device.id}</span>
+                    <Badge
+                      variant={device.status === "device" ? "default" : "secondary"}
                       className={cn(
-                        "flex-1 justify-start text-left font-mono text-xs",
-                        isSelected && "bg-primary text-primary-foreground",
-                        isDisabled && "cursor-not-allowed"
+                        "ml-auto text-[10px]",
+                        device.status === "device" ? "bg-green-600" : "bg-gray-500"
                       )}
-                      onClick={() => !isDisabled && setSelectedDevice(device.id)}
-                      disabled={isDisabled}
                     >
-                      <span className="truncate">{device.id}</span>
-                      <Badge
-                        variant={isOnline ? "default" : "secondary"}
-                        className={cn(
-                          "ml-auto text-[10px]",
-                          isOnline ? "bg-green-600" : "bg-gray-500"
-                        )}
-                      >
-                        {device.status}
-                      </Badge>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => disconnectDevice(device.id)}
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer shrink-0"
-                      title="断开设备"
-                    >
-                      <Unplug className="w-4 h-4" />
-                    </Button>
-                  </div>
-                );
-              })
+                      {device.status}
+                    </Badge>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => disconnectDevice(device.id)}
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer shrink-0"
+                    title="断开设备"
+                  >
+                    <Unplug className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))
             )}
           </div>
         </ScrollArea>
