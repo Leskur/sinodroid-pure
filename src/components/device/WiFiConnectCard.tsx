@@ -18,7 +18,7 @@ interface WiFiHistory {
 
 export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConnectCardProps) {
   const [ip, setIp] = useState("");
-  const [port, setPort] = useState("5555");
+  const [port, setPort] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [history, setHistory] = useState<WiFiHistory[]>([]);
 
@@ -48,10 +48,13 @@ export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConne
       return;
     }
 
+    // 如果端口为空，使用默认端口 5555
+    const portToUse = port || "5555";
+
     setConnecting(true);
     try {
       // 执行 ADB WiFi 连接命令
-      const address = `${ip}:${port}`;
+      const address = `${ip}:${portToUse}`;
       const result = await executeAdbCommand(["connect", address]);
 
       // 检查连接是否真正成功
@@ -61,9 +64,10 @@ export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConne
 
       if (isSuccess) {
         // 连接成功后才添加到历史记录（保持最近 5 条）
+        // 保存实际使用的端口（如果为空则保存 5555）
         const newHistory: WiFiHistory[] = [
-          { ip, port, timestamp: Date.now() },
-          ...history.filter(h => !(h.ip === ip && h.port === port))
+          { ip, port: portToUse, timestamp: Date.now() },
+          ...history.filter(h => !(h.ip === ip && h.port === portToUse))
         ].slice(0, 5);
 
         saveHistory(newHistory);
@@ -75,6 +79,7 @@ export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConne
 
         // 清空输入
         setIp("");
+        setPort("");
       } else {
         // 连接失败
         toast.error("WiFi 连接失败", { description: result || "连接失败" });
