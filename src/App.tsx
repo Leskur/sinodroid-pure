@@ -313,15 +313,38 @@ function App() {
       // 获取 WiFi 信息
       let wifi = "N/A";
       try {
-        const wifiOutput = await executeAdbCommand(["-s", deviceId, "shell", "dumpsys", "wifi"]);
-        const stateMatch = wifiOutput.match(/mWifiState:\s*(\d+)/);
-        if (stateMatch) {
-          const state = parseInt(stateMatch[1]);
-          const stateText = state === 3 ? "已连接" : state === 2 ? "正在连接" : "关闭";
-          wifi = stateText;
+        // 方法1: 检查 WiFi 是否启用
+        const wifiEnabled = await executeAdbCommand(["-s", deviceId, "shell", "svc", "wifi", "state"]);
+        const isEnabled = wifiEnabled.trim() === "enabled";
+
+        if (isEnabled) {
+          // 方法2: 检查 WiFi 是否已连接
+          const wifiState = await executeAdbCommand(["-s", deviceId, "shell", "dumpsys", "wifi", "|", "grep", "mNetworkInfo"]);
+          if (wifiState.includes("CONNECTED")) {
+            wifi = "已连接";
+          } else if (wifiState.includes("CONNECTING")) {
+            wifi = "正在连接";
+          } else {
+            wifi = "已启用";
+          }
+        } else {
+          wifi = "关闭";
         }
       } catch (e) {
-        wifi = "获取失败";
+        // 如果上面的方法失败，尝试备用方法
+        try {
+          const wifiOutput = await executeAdbCommand(["-s", deviceId, "shell", "dumpsys", "wifi"]);
+          const stateMatch = wifiOutput.match(/mWifiState:\s*(\d+)/);
+          if (stateMatch) {
+            const state = parseInt(stateMatch[1]);
+            const stateText = state === 3 ? "已连接" : state === 2 ? "正在连接" : "关闭";
+            wifi = stateText;
+          } else {
+            wifi = "未知";
+          }
+        } catch (e2) {
+          wifi = "获取失败";
+        }
       }
 
       setDeviceInfo({
