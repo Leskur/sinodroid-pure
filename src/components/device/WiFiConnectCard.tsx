@@ -166,14 +166,14 @@ export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConne
               {history.map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 p-2 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-2 p-2 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                 >
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => connectFromHistory(item)}
                     disabled={connecting}
-                    className="flex-1 justify-start font-mono text-xs h-8"
+                    className="flex-1 justify-start font-mono text-xs h-8 cursor-pointer"
                   >
                     {item.ip}:{item.port}
                   </Button>
@@ -181,7 +181,7 @@ export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConne
                     size="sm"
                     variant="ghost"
                     onClick={() => removeHistoryItem(index)}
-                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>

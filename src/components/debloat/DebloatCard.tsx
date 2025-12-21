@@ -116,6 +116,7 @@ export function DebloatCard({
                       .finally(() => setOperating(false));
                   }}
                   disabled={!selectedDevice || operating}
+                  className="cursor-pointer"
                 >
                   卸载
                 </Button>
