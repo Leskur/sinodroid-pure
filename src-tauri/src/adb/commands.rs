@@ -105,6 +105,9 @@ pub async fn execute_adb_command(app: AppHandle, args: Vec<String>) -> Result<St
     let start = std::time::Instant::now();
     let adb_path = get_adb_path(&app).map_err(|e| format!("Failed to get adb path: {}", e))?;
 
+    // 克隆 args 用于后续的日志输出
+    let args_clone = args.clone();
+
     // 使用 spawn_blocking 在后台线程执行同步操作
     let result = spawn_blocking(move || {
         let output = Command::new(&adb_path)
@@ -128,7 +131,7 @@ pub async fn execute_adb_command(app: AppHandle, args: Vec<String>) -> Result<St
 
     // 性能监控：执行时间过长时记录警告
     if duration.as_secs() > 3 {
-        eprintln!("[ADB] ⚠️ execute_adb_command 缓慢: {:?} - {:?}", args, duration);
+        eprintln!("[ADB] ⚠️ execute_adb_command 缓慢: {:?} - {:?}", args_clone, duration);
     }
 
     Ok(result)
