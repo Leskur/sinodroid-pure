@@ -218,6 +218,14 @@ function App() {
       const sdkVersion = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.build.version.sdk" ]);
       // 获取序列号
       const serialNumber = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.serialno" ]);
+      // 获取安全补丁级别
+      const securityPatch = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.build.version.security_patch" ]).catch(() => "N/A");
+      // 获取构建版本号
+      const buildNumber = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.build.version.incremental" ]).catch(() => "N/A");
+      // 获取主板型号
+      const board = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.product.board" ]).catch(() => "N/A");
+      // 获取内核版本
+      const kernelVersion = await executeAdbCommand([ "-s", deviceId, "shell", "uname", "-r" ]).catch(() => "N/A");
 
       // 获取电池信息
       let battery = "N/A";
@@ -363,6 +371,63 @@ function App() {
         }
       }
 
+      // 获取 IP 地址
+      let ipAddress = "N/A";
+      try {
+        const ipOutput = await executeAdbCommand([ "-s", deviceId, "shell", "ip", "addr", "show", "wlan0" ]);
+        const ipMatch = ipOutput.match(/inet\s+(\d+\.\d+\.\d+\.\d+)/);
+        if (ipMatch) {
+          ipAddress = ipMatch[1];
+        }
+      } catch (e) {
+        ipAddress = "获取失败";
+      }
+
+      // 获取 MAC 地址
+      let macAddress = "N/A";
+      try {
+        const macOutput = await executeAdbCommand([ "-s", deviceId, "shell", "cat", "/sys/class/net/wlan0/address" ]);
+        if (macOutput.trim()) {
+          macAddress = macOutput.trim();
+        }
+      } catch (e) {
+        macAddress = "获取失败";
+      }
+
+      // 获取 SIM 卡状态
+      let simStatus = "N/A";
+      try {
+        const simOutput = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "gsm.sim.state" ]);
+        if (simOutput.trim()) {
+          const simState = simOutput.trim();
+          if (simState === "READY") {
+            simStatus = "就绪";
+          } else if (simState === "ABSENT") {
+            simStatus = "无卡";
+          } else if (simState === "PIN_REQUIRED") {
+            simStatus = "需要 PIN";
+          } else if (simState === "PUK_REQUIRED") {
+            simStatus = "需要 PUK";
+          } else {
+            simStatus = simState;
+          }
+        }
+      } catch (e) {
+        simStatus = "获取失败";
+      }
+
+      // 获取前台应用
+      let foregroundApp = "N/A";
+      try {
+        const fgOutput = await executeAdbCommand([ "-s", deviceId, "shell", "dumpsys", "activity", "activities", "|", "grep", "mResumedActivity" ]);
+        const fgMatch = fgOutput.match(/mResumedActivity.*?([a-zA-Z0-9_.]+)/);
+        if (fgMatch) {
+          foregroundApp = fgMatch[1];
+        }
+      } catch (e) {
+        foregroundApp = "获取失败";
+      }
+
       setDeviceInfo({
         model: model.trim(),
         manufacturer: manufacturer.trim(),
@@ -374,7 +439,15 @@ function App() {
         ram,
         cpu,
         resolution,
-        wifi
+        wifi,
+        ipAddress,
+        securityPatch: securityPatch.trim(),
+        foregroundApp,
+        kernelVersion: kernelVersion.trim(),
+        buildNumber: buildNumber.trim(),
+        macAddress,
+        simStatus,
+        board: board.trim()
       });
 
     } catch (err) {
