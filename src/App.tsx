@@ -175,7 +175,7 @@ function App() {
 
     // 只在 ready 且开启了自动检测时才启动检测
     if (ready && autoDetect) {
-      intervalId = setInterval(checkDeviceChanges, 2000); // 每2秒检查一次
+      intervalId = setInterval(checkDeviceChanges, 3000); // 每3秒检查一次
     }
 
     return () => {
