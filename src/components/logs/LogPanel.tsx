@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { FileText, Trash2, Search } from "lucide-react";
+import { FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -76,15 +76,12 @@ export function LogPanel({ operationLog, clearLog }: LogPanelProps) {
           {/* 搜索栏 */}
           {operationLog.length > 0 && (
             <div className="px-4 pb-3">
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="搜索日志..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-7 h-8 text-sm"
-                />
-              </div>
+              <Input
+                placeholder="搜索记录..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-8 text-sm"
+              />
             </div>
           )}
 
