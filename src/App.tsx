@@ -253,10 +253,16 @@ function App() {
         const lines = storageOutput.split("\n").filter(l => l.trim());
         if (lines.length > 1) {
           const parts = lines[1].trim().split(/\s+/);
-          const total = parts[1];
-          const used = parts[2];
-          const avail = parts[3];
-          storage = `总: ${total}, 已用: ${used}, 可用: ${avail}`;
+          const totalKb = parseInt(parts[1]);
+          const usedKb = parseInt(parts[2]);
+          const availKb = parseInt(parts[3]);
+
+          // 转换为 GB
+          const totalGb = (totalKb / 1024 / 1024).toFixed(1);
+          const usedGb = (usedKb / 1024 / 1024).toFixed(1);
+          const availGb = (availKb / 1024 / 1024).toFixed(1);
+
+          storage = `总: ${totalGb} GB, 已用: ${usedGb} GB, 可用: ${availGb} GB`;
         }
       } catch (e) {
         storage = "获取失败";
