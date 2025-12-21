@@ -1,4 +1,4 @@
-import { RefreshCw, Copy, Loader2, MonitorSmartphone, Info, Battery, Wifi, HardDrive, MemoryStick, Cpu, Shield, Terminal, Activity, Network, Smartphone, CircuitBoard, GitBranch, Box, Server, Cpu as CpuIcon, Smartphone as AndroidIcon } from "lucide-react";
+import { RefreshCw, Copy, Loader2, MonitorSmartphone, Info, HardDrive, MemoryStick, Cpu, Shield, Terminal, Activity, Smartphone, CircuitBoard, GitBranch, Box, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -12,21 +12,19 @@ export interface DeviceInfo {
   sdkVersion: string;
   serialNumber: string;
 
-  // 状态信息
-  battery: string;
+  // 存储信息
   storage: string;
+
+  // 硬件信息
   ram: string;
   cpu: string;
   resolution: string;
-  wifi: string;
-  wifiSsid: string;         // WiFi 名称
 
-  // 新增信息（按重要程度排序）
-  ipAddress: string;        // IP 地址 - 高重要性
-  securityPatch: string;    // 安全补丁 - 高重要性
-  kernelVersion: string;    // 内核版本 - 中重要性
-  buildNumber: string;      // 构建版本 - 中重要性
-  board: string;            // 主板型号 - 低重要性
+  // 系统信息
+  securityPatch: string;    // 安全补丁
+  kernelVersion: string;    // 内核版本
+  buildNumber: string;      // 构建版本
+  board: string;            // 主板型号
 }
 
 interface DeviceInfoCardProps {
@@ -101,7 +99,7 @@ export function DeviceInfoCard({
               </div>
 
               <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <AndroidIcon className="w-5 h-5 text-primary mt-0.5" />
+                <Info className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <div className="text-xs text-muted-foreground mb-1">Android 版本</div>
                   <div className="font-medium text-sm">{deviceInfo.androidVersion}</div>
@@ -118,55 +116,16 @@ export function DeviceInfoCard({
               </div>
 
               <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Network className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">IP 地址</div>
-                  <div className="font-medium text-sm font-mono">{deviceInfo.ipAddress}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* 状态信息 - 第二行 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Battery className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">电池状态</div>
-                  <div className="font-medium text-sm">{deviceInfo.battery}</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Wifi className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">WiFi 状态</div>
-                  <div className={`font-medium text-sm ${
-                    deviceInfo.wifi === "已连接" ? "text-green-600 dark:text-green-400" :
-                    deviceInfo.wifi === "正在连接" ? "text-yellow-600 dark:text-yellow-400" :
-                    deviceInfo.wifi === "关闭" ? "text-red-600 dark:text-red-400" :
-                    "text-muted-foreground"
-                  }`}>{deviceInfo.wifi}</div>
-                  {deviceInfo.wifi === "已连接" && (
-                    <div className="text-xs text-muted-foreground mt-1 flex gap-2 flex-wrap">
-                      {deviceInfo.wifiSsid && deviceInfo.wifiSsid !== "N/A" && (
-                        <span className="font-medium">{deviceInfo.wifiSsid}</span>
-                      )}
-                      {deviceInfo.ipAddress && deviceInfo.ipAddress !== "N/A" && (
-                        <span className="font-mono opacity-75">{deviceInfo.ipAddress}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
                 <HardDrive className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <div className="text-xs text-muted-foreground mb-1">存储空间</div>
                   <div className="font-medium text-xs break-words leading-relaxed">{deviceInfo.storage}</div>
                 </div>
               </div>
+            </div>
 
+            {/* 硬件信息 - 第二行 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
                 <MemoryStick className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1 min-w-0">
@@ -174,10 +133,7 @@ export function DeviceInfoCard({
                   <div className="font-medium text-sm">{deviceInfo.ram}</div>
                 </div>
               </div>
-            </div>
 
-            {/* 硬件信息 - 第三行 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
                 <Cpu className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1 min-w-0">
@@ -201,7 +157,10 @@ export function DeviceInfoCard({
                   <div className="font-medium text-xs break-all">{deviceInfo.kernelVersion}</div>
                 </div>
               </div>
+            </div>
 
+            {/* 其他信息 - 第三行 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
                 <GitBranch className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1 min-w-0">
@@ -209,10 +168,7 @@ export function DeviceInfoCard({
                   <div className="font-medium text-xs break-all">{deviceInfo.buildNumber}</div>
                 </div>
               </div>
-            </div>
 
-            {/* 其他信息 - 第四行 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
                 <CircuitBoard className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1 min-w-0">
