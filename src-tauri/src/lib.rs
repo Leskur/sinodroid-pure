@@ -1,4 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+use tauri::Manager;
+
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
@@ -19,6 +21,15 @@ pub fn run() {
             adb::commands::get_devices,
             adb::commands::execute_adb_command,
         ])
+        .on_window_event(|window, event| {
+            // 在窗口关闭时关闭 ADB 服务器
+            if let tauri::WindowEvent::Destroyed = event {
+                let app = window.app_handle();
+                if let Err(e) = adb::commands::kill_adb_server(app) {
+                    eprintln!("Failed to kill ADB server: {}", e);
+                }
+            }
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

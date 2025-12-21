@@ -90,6 +90,26 @@ pub fn execute_adb_command(app: AppHandle, args: Vec<String>) -> Result<String, 
     Ok(result)
 }
 
+/// 关闭 ADB 服务器
+/// 在应用退出时调用，清理 ADB 进程
+pub fn kill_adb_server(app: &AppHandle) -> Result<(), String> {
+    let adb_path = get_adb_path(app).map_err(|e| format!("Failed to get adb path: {}", e))?;
+
+    // 执行 adb kill-server 命令
+    let output = Command::new(&adb_path)
+        .arg("kill-server")
+        .output()
+        .map_err(|e| format!("Failed to execute adb kill-server: {}", e))?;
+
+    // 即使命令失败也不返回错误，确保应用能正常退出
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        eprintln!("ADB kill-server warning: {}", stderr);
+    }
+
+    Ok(())
+}
+
 /// 解析 adb devices 输出
 fn parse_devices(output: &str) -> Vec<Device> {
     let mut devices = Vec::new();
