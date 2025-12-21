@@ -46,7 +46,7 @@ function App() {
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
 
-  // 操作记录
+  // 日志
   const [operationLog, setOperationLog] = useState<string[]>([]);
   const [operating, setOperating] = useState(false);
 
@@ -491,7 +491,7 @@ function App() {
   const menuNames: Record<SidebarType, string> = {
     device: "设备管理",
     debloat: "卸载预装应用",
-    log: "操作记录"
+    log: "日志"
   };
 
   return (

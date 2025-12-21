@@ -1,4 +1,4 @@
-import { Smartphone, Trash2, History } from "lucide-react";
+import { Smartphone, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -51,8 +51,8 @@ export function Sidebar({
             className="w-full justify-start"
             onClick={() => setActiveSidebar("log")}
           >
-            <History className="w-4 h-4 mr-2" />
-            操作记录
+            <FileText className="w-4 h-4 mr-2" />
+            日志
             {operationLogCount > 0 && (
               <span className="ml-auto text-xs bg-primary text-primary-foreground px-1.5 rounded-full">
                 {operationLogCount}
