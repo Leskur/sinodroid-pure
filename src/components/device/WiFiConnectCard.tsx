@@ -135,27 +135,29 @@ export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConne
       </CardHeader>
       <CardContent className="space-y-4">
         {/* 连接表单 */}
-        <div className="flex gap-2">
-          <Input
-            placeholder="IP 地址 (如: 192.168.1.100)"
-            value={ip}
-            onChange={(e) => setIp(e.target.value)}
-            disabled={connecting}
-            className="flex-1"
-          />
-          <Input
-            placeholder="端口"
-            value={port}
-            onChange={(e) => setPort(e.target.value)}
-            disabled={connecting}
-            className="w-24"
-          />
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Input
+              placeholder="IP 地址 (如: 192.168.1.100)"
+              value={ip}
+              onChange={(e) => setIp(e.target.value)}
+              disabled={connecting}
+              className="flex-1"
+            />
+            <Input
+              placeholder="端口"
+              value={port}
+              onChange={(e) => setPort(e.target.value)}
+              disabled={connecting}
+              className="w-24"
+            />
+          </div>
           <Button
             onClick={connectWiFi}
             disabled={connecting || !ip}
-            className="min-w-[80px]"
+            className="w-full"
           >
-            {connecting ? "连接中..." : "连接"}
+            {connecting ? "连接中..." : "连接 WiFi 设备"}
           </Button>
         </div>
 

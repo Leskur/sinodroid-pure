@@ -123,16 +123,10 @@ fn parse_devices(output: &str) -> Vec<Device> {
 
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.len() >= 2 {
-            let id = parts[0].to_string();
-            let status = parts[1].to_string();
-
-            // 过滤掉 ADB 的 TLS 连接记录（包含 _adb-tls-connect._tcp）
-            if !id.contains("_adb-tls-connect._tcp") {
-                devices.push(Device {
-                    id,
-                    status,
-                });
-            }
+            devices.push(Device {
+                id: parts[0].to_string(),
+                status: parts[1].to_string(),
+            });
         }
     }
 
