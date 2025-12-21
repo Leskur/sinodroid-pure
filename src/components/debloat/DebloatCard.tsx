@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Trash2, Play, Loader2, Filter, RotateCw } from "lucide-react";
+import { Trash2, Play, Loader2, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AppIcon from "@/components/AppIcon";
 import type { DeviceInfo } from "@/components/device/DeviceInfoCard";
@@ -157,63 +157,45 @@ export function DebloatCard({
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-4">
+    <div className="max-w-6xl mx-auto">
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Trash2 className="w-5 h-5" />
-                卸载预装
-              </CardTitle>
-              <CardDescription className="flex items-center gap-2 flex-wrap">
-                自动检测应用状态，支持卸载/恢复预装应用
-                {detectedBrand && (
-                  <Badge variant="secondary" className="ml-2 flex items-center gap-1">
-                    <Filter className="w-3 h-3" />
-                    已过滤: {detectedBrand}
-                  </Badge>
-                )}
-              </CardDescription>
-            </div>
-            <Button
-              variant="destructive"
-              onClick={batchDebloat}
-              disabled={!selectedDevice || operating}
-              size="lg"
-            >
-              {operating ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Play className="w-4 h-4" />
+        <CardHeader className="flex flex-row items-center justify-between py-3">
+          <div className="flex items-center gap-3">
+            <Trash2 className="w-5 h-5" />
+            <div className="flex flex-col gap-0.5">
+              <span className="font-semibold">卸载预装</span>
+              {detectedBrand && (
+                <span className="text-xs text-muted-foreground">
+                  检测到 {detectedBrand}，共 {filteredPackages.length} 个应用
+                  {checking && <span className="ml-2 text-primary">检测中...</span>}
+                </span>
               )}
-              <span className="ml-2">{operating ? "执行中..." : "一键卸载"}</span>
-            </Button>
+            </div>
           </div>
+          <Button
+            variant="destructive"
+            onClick={batchDebloat}
+            disabled={!selectedDevice || operating}
+            size="sm"
+            className="h-7 px-3"
+          >
+            {operating ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Play className="w-3.5 h-3.5" />
+            )}
+            <span className="ml-1.5 text-xs">{operating ? "执行中" : "一键卸载"}</span>
+          </Button>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* 品牌过滤提示 */}
-          {detectedBrand && (
-            <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg border flex items-center gap-2 flex-wrap">
-              <span className="font-medium">检测到品牌: {detectedBrand}</span>
-              <span className="mx-2">•</span>
-              <span>共 {filteredPackages.length} 个应用</span>
-              {checking && (
-                <>
-                  <span className="mx-2">•</span>
-                  <span className="text-primary">正在检测状态...</span>
-                </>
-              )}
-            </div>
-          )}
-          <div className="grid gap-2">
+        <CardContent className="p-0">
+          <div className="divide-y">
             {filteredPackages.map((item) => {
               const isInstalled = installedMap[item.package];
               return (
-                <div key={item.package} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
+                <div key={item.package} className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <AppIcon package={item.package} size={28} />
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="font-medium text-sm flex items-center gap-2">
                         {item.name}
                         {isInstalled !== undefined && (
@@ -235,16 +217,16 @@ export function DebloatCard({
                     variant={isInstalled ? "destructive" : "default"}
                     onClick={() => handleAppAction(item, isInstalled)}
                     disabled={!selectedDevice || operating || isInstalled === undefined}
-                    className="cursor-pointer"
+                    className="h-7 px-2"
                   >
                     {isInstalled ? (
                       <>
-                        <Trash2 className="w-4 h-4 mr-1" />
+                        <Trash2 className="w-3.5 h-3.5 mr-1" />
                         卸载
                       </>
                     ) : (
                       <>
-                        <RotateCw className="w-4 h-4 mr-1" />
+                        <RotateCw className="w-3.5 h-3.5 mr-1" />
                         恢复
                       </>
                     )}
