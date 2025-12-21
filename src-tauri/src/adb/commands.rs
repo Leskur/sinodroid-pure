@@ -57,24 +57,41 @@ pub async fn get_adb_version(app: AppHandle) -> Result<String, String> {
 pub async fn get_devices(app: AppHandle) -> Result<Vec<Device>, String> {
     eprintln!("[ADB] get_devices: 开始执行");
     let start = std::time::Instant::now();
+
+    let path_start = std::time::Instant::now();
     let adb_path = get_adb_path(&app).map_err(|e| format!("Failed to get adb path: {}", e))?;
+    eprintln!("[ADB] get_devices: 获取adb路径 - {:?}", path_start.elapsed());
+
+    // 检查 ADB 路径是否存在，避免不必要的服务器启动
+    if !adb_path.exists() {
+        return Err(format!("ADB 未找到: {:?}", adb_path));
+    }
 
     let result = spawn_blocking(move || {
+        let exec_start = std::time::Instant::now();
         let output = Command::new(&adb_path)
             .arg("devices")
             .output()
             .map_err(|e| format!("Failed to execute adb: {}", e))?;
 
-        if !output.status.success() {
-            return Err(format!(
-                "ADB command failed: {}",
-                String::from_utf8_lossy(&output.stderr)
-            ));
+        let exec_duration = exec_start.elapsed();
+        eprintln!("[ADB] get_devices: 命令执行完成 - {:?}", exec_duration);
+
+        // 如果执行时间过长，记录警告
+        if exec_duration.as_secs() > 2 {
+            eprintln!("[ADB] ⚠️ 命令执行缓慢: {:?}", exec_duration);
         }
 
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            eprintln!("[ADB] get_devices: 命令执行失败 - {}", stderr);
+            return Err(format!("ADB command failed: {}", stderr));
+        }
+
+        let parse_start = std::time::Instant::now();
         let output_str = String::from_utf8_lossy(&output.stdout);
         let devices = parse_devices(&output_str);
-
+        eprintln!("[ADB] get_devices: 解析完成 - {:?}, 输出: {}", parse_start.elapsed(), output_str.trim());
         Ok(devices)
     })
     .await
@@ -82,6 +99,12 @@ pub async fn get_devices(app: AppHandle) -> Result<Vec<Device>, String> {
 
     let duration = start.elapsed();
     eprintln!("[ADB] get_devices: 完成 - {:?} - {} 台设备", duration, result.len());
+
+    // 总性能建议
+    if duration.as_secs() > 3 {
+        eprintln!("[ADB] ⚠️ 性能警告: 总耗时 {:?}，建议检查 ADB 服务器状态", duration);
+    }
+
     Ok(result)
 }
 

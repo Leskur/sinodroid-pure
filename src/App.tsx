@@ -90,6 +90,23 @@ function App() {
         setAdbVersion(version);
         setReady(true);
         toast.success("ADB 工具初始化成功", { description: version.split("\n")[0] });
+
+        // 预热 ADB 服务器：在后台预启动 ADB 服务器，避免首次调用延迟
+        // 这会在用户不知情的情况下启动 ADB 服务器，后续调用会更快
+        setTimeout(async () => {
+          try {
+            console.log("[INIT] 🔥 预热 ADB 服务器...");
+            const warmupStart = performance.now();
+            await getDevices();
+            const warmupDuration = performance.now() - warmupStart;
+            console.log(`[INIT] 🔥 ADB 服务器预热完成: ${warmupDuration.toFixed(0)}ms`);
+            if (warmupDuration > 3000) {
+              console.warn(`[INIT] ⚠️ ADB 首次启动较慢 (${warmupDuration.toFixed(0)}ms)，后续调用会更快`);
+            }
+          } catch (e) {
+            console.log("[INIT] ADB 预热完成（无设备连接）");
+          }
+        }, 100); // 延迟 100ms 开始预热，避免阻塞 UI
       } catch (err) {
         console.error("[INIT] 初始化失败:", err);
         toast.error("初始化失败", { description: String(err) });
@@ -105,15 +122,63 @@ function App() {
   const refreshDevices = async () => {
     addLog("🔄 刷新设备列表...");
     const startTime = performance.now();
-    try {
-      const deviceList = await getDevices();
-      const duration = performance.now() - startTime;
-      addLog(`✅ 设备列表刷新完成: ${deviceList.length} 台设备 (${duration.toFixed(0)}ms)`);
-      setDevices(deviceList);
-      if (deviceList.length > 0 && !selectedDevice) {
-        setSelectedDevice(deviceList[0].id);
+
+    // 记录详细的内存使用情况
+    const logMemoryInfo = () => {
+      if (performance.memory) {
+        const usedMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
+        const totalMB = (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed(1);
+        addLog(`  💾  内存使用: ${usedMB}MB / ${totalMB}MB`);
       }
+    };
+
+    try {
+      // 记录调用前状态
+      addLog(`  📋  调用前状态 - 已有设备: ${devices.length}, 选中设备: ${selectedDevice || '无'}`);
+      logMemoryInfo();
+
+      const getDevicesStart = performance.now();
+      addLog(`  ⏳  开始调用 getDevices()...`);
+
+      const deviceList = await getDevices();
+
+      const getDevicesDuration = performance.now() - getDevicesStart;
+      addLog(`  ✅  getDevices() 完成: ${getDevicesDuration.toFixed(0)}ms, 返回 ${deviceList.length} 台设备`);
+
+      // 如果超过1秒，特别标记
+      if (getDevicesDuration > 1000) {
+        addLog(`  ⚠️  getDevices() 耗时过长: ${getDevicesDuration.toFixed(0)}ms`);
+      }
+
+      logMemoryInfo();
+
+      const setDevicesStart = performance.now();
+      setDevices(deviceList);
+      const setDevicesDuration = performance.now() - setDevicesStart;
+      addLog(`  ⏱️  setDevices() React状态更新: ${setDevicesDuration.toFixed(0)}ms`);
+
+      if (deviceList.length > 0 && !selectedDevice) {
+        const selectStart = performance.now();
+        setSelectedDevice(deviceList[0].id);
+        const selectDuration = performance.now() - selectStart;
+        addLog(`  ⏱️  setSelectedDevice(): ${selectDuration.toFixed(0)}ms`);
+      }
+
+      const toastStart = performance.now();
       toast.success("设备列表已刷新", { description: `发现 ${deviceList.length} 台设备` });
+      const toastDuration = performance.now() - toastStart;
+      addLog(`  ⏱️  toast: ${toastDuration.toFixed(0)}ms`);
+
+      const totalTime = performance.now() - startTime;
+
+      // 性能分析总结
+      if (totalTime > 3000) {
+        addLog(`  📊  性能分析: 总耗时 ${totalTime.toFixed(0)}ms`);
+        addLog(`  📊  其中 getDevices 占 ${(getDevicesDuration/totalTime*100).toFixed(0)}%`);
+        addLog(`  📊  建议: ${getDevicesDuration > 2000 ? 'ADB命令执行慢，检查设备连接' : 'React渲染较慢'}`);
+      }
+
+      addLog(`✅ 设备列表刷新完成: ${deviceList.length} 台设备 (${totalTime.toFixed(0)}ms)`);
     } catch (err) {
       const duration = performance.now() - startTime;
       addLog(`❌ 获取设备列表失败: ${String(err)} (${duration.toFixed(0)}ms)`);
@@ -147,47 +212,67 @@ function App() {
     }
   };
 
-  // 自动检测设备插拔
+  // 自动检测设备插拔（带智能节流和缓存）
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
     let previousDeviceCount = 0;
+    let lastCheckTime = 0;
+    const CHECK_INTERVAL = 3000; // 3秒
+    const MIN_INTERVAL = 5000; // 最小5秒才记录一次变化（避免抖动）
 
     const checkDeviceChanges = async () => {
-      if (!autoDetect) return; // 如果关闭了自动检测，直接返回
+      if (!autoDetect) return;
+
+      const now = Date.now();
+      // 节流：如果距离上次检查太短，跳过
+      if (now - lastCheckTime < CHECK_INTERVAL) return;
+      lastCheckTime = now;
 
       try {
+        const startTime = performance.now();
         const deviceList = await getDevices();
+        const duration = performance.now() - startTime;
+
+        // 如果单次查询超过2秒，警告用户
+        if (duration > 2000) {
+          console.warn(`[AutoDetect] 设备检测缓慢: ${duration.toFixed(0)}ms`);
+        }
+
         const currentCount = deviceList.length;
 
-        // 检测设备数量变化
+        // 检测设备数量变化（带防抖）
         if (currentCount !== previousDeviceCount) {
-          if (currentCount > previousDeviceCount) {
-            // 新设备连接
-            toast.success("检测到新设备连接", {
-              description: `当前 ${currentCount} 台设备`
-            });
-          } else {
-            // 设备断开
-            toast.info("设备已断开", {
-              description: `剩余 ${currentCount} 台设备`
-            });
-          }
+          const timeSinceLastChange = now - (window.__lastDeviceChangeTime || 0);
 
-          // 更新设备列表
-          setDevices(deviceList);
-
-          // 自动选择设备
-          if (deviceList.length > 0) {
-            // 如果之前选中的设备还在，保持选择；否则选择第一个
-            const currentDeviceStillConnected = deviceList.some(d => d.id === selectedDevice);
-            if (!currentDeviceStillConnected || !selectedDevice) {
-              setSelectedDevice(deviceList[0].id);
+          if (timeSinceLastChange > MIN_INTERVAL || previousDeviceCount === 0) {
+            if (currentCount > previousDeviceCount && previousDeviceCount > 0) {
+              // 新设备连接
+              toast.success("检测到新设备连接", {
+                description: `当前 ${currentCount} 台设备`
+              });
+            } else if (currentCount < previousDeviceCount && currentCount > 0) {
+              // 设备断开
+              toast.info("设备已断开", {
+                description: `剩余 ${currentCount} 台设备`
+              });
             }
-          } else {
-            setSelectedDevice("");
-          }
 
-          previousDeviceCount = currentCount;
+            window.__lastDeviceChangeTime = now;
+            previousDeviceCount = currentCount;
+
+            // 更新设备列表
+            setDevices(deviceList);
+
+            // 自动选择设备
+            if (deviceList.length > 0) {
+              const currentDeviceStillConnected = deviceList.some(d => d.id === selectedDevice);
+              if (!currentDeviceStillConnected || !selectedDevice) {
+                setSelectedDevice(deviceList[0].id);
+              }
+            } else {
+              setSelectedDevice("");
+            }
+          }
         }
       } catch (err) {
         // 静默处理错误，避免频繁弹窗
@@ -197,12 +282,14 @@ function App() {
 
     // 只在 ready 且开启了自动检测时才启动检测
     if (ready && autoDetect) {
-      intervalId = setInterval(checkDeviceChanges, 3000); // 每3秒检查一次
+      console.log(`[AutoDetect] 启动自动检测，间隔: ${CHECK_INTERVAL}ms`);
+      intervalId = setInterval(checkDeviceChanges, CHECK_INTERVAL);
     }
 
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
+        console.log(`[AutoDetect] 自动检测已停止`);
       }
     };
   }, [ready, selectedDevice, autoDetect]);
