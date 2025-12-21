@@ -13,6 +13,7 @@ import { ErrorScreen } from "@/components/common/ErrorScreen";
 import { Sidebar, type SidebarType } from "@/components/layout/Sidebar";
 import { DeviceListCard } from "@/components/device/DeviceListCard";
 import { DeviceInfoCard, type DeviceInfo } from "@/components/device/DeviceInfoCard";
+import { WiFiConnectCard } from "@/components/device/WiFiConnectCard";
 import { DebloatCard, type BloatwarePackage } from "@/components/debloat/DebloatCard";
 import { LogPanel } from "@/components/logs/LogPanel";
 
@@ -379,6 +380,13 @@ function App() {
     return <ErrorScreen />;
   }
 
+  // 菜单名称映射
+  const menuNames: Record<SidebarType, string> = {
+    device: "设备管理",
+    debloat: "批量去广告",
+    log: "操作日志"
+  };
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* 侧边栏 */}
@@ -391,19 +399,37 @@ function App() {
       />
 
       {/* 内容区域 */}
-      <main className="flex-1 overflow-y-auto p-6 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden h-screen">
-        {/* 设备管理内容 */}
-        {activeSidebar === "device" && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <DeviceListCard
-                devices={devices}
-                selectedDevice={selectedDevice}
-                setSelectedDevice={setSelectedDevice}
-                refreshDevices={refreshDevices}
-                autoDetect={autoDetect}
-                setAutoDetect={setAutoDetect}
-              />
+      <main className="flex-1 overflow-y-auto h-screen flex flex-col">
+        {/* 顶部栏 */}
+        <div className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+          <div className="px-6 py-4">
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+              {menuNames[activeSidebar]}
+            </h1>
+          </div>
+        </div>
+
+        {/* 内容区域 */}
+        <div className="flex-1 overflow-y-auto p-6 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden">
+          {/* 设备管理内容 */}
+          {activeSidebar === "device" && (
+            <div className="space-y-4 max-w-6xl mx-auto">
+              {/* 第一行：设备列表 + WiFi 连接 */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <DeviceListCard
+                  devices={devices}
+                  selectedDevice={selectedDevice}
+                  setSelectedDevice={setSelectedDevice}
+                  refreshDevices={refreshDevices}
+                  autoDetect={autoDetect}
+                  setAutoDetect={setAutoDetect}
+                />
+                <WiFiConnectCard
+                  executeAdbCommand={executeAdbCommand}
+                  refreshDevices={refreshDevices}
+                />
+              </div>
+              {/* 第二行：当前设备信息 */}
               <DeviceInfoCard
                 selectedDevice={selectedDevice}
                 loadingInfo={loadingInfo}
@@ -411,29 +437,29 @@ function App() {
                 fetchDeviceInfo={fetchDeviceInfo}
               />
             </div>
-          </div>
-        )}
+          )}
 
-        {/* 去广告内容 */}
-        {activeSidebar === "debloat" && (
-          <DebloatCard
-            selectedDevice={selectedDevice}
-            operating={operating}
-            bloatwarePackages={BLOATWARE_PACKAGES}
-            operationLog={operationLog}
-            setOperationLog={setOperationLog}
-            setOperating={setOperating}
-            executeAdbCommand={executeAdbCommand}
-          />
-        )}
+          {/* 去广告内容 */}
+          {activeSidebar === "debloat" && (
+            <DebloatCard
+              selectedDevice={selectedDevice}
+              operating={operating}
+              bloatwarePackages={BLOATWARE_PACKAGES}
+              operationLog={operationLog}
+              setOperationLog={setOperationLog}
+              setOperating={setOperating}
+              executeAdbCommand={executeAdbCommand}
+            />
+          )}
 
-        {/* 日志内容 */}
-        {activeSidebar === "log" && (
-          <LogPanel
-            operationLog={operationLog}
-            clearLog={clearLog}
-          />
-        )}
+          {/* 日志内容 */}
+          {activeSidebar === "log" && (
+            <LogPanel
+              operationLog={operationLog}
+              clearLog={clearLog}
+            />
+          )}
+        </div>
       </main>
 
       {/* Toast 提示 */}
