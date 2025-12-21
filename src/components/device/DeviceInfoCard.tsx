@@ -129,7 +129,7 @@ export function DeviceInfoCard({
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border md:col-span-2">
+              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
                 <Cpu className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <div className="text-xs text-muted-foreground mb-1">处理器 (CPU)</div>
@@ -137,7 +137,7 @@ export function DeviceInfoCard({
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border md:col-span-2">
+              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
                 <MonitorSmartphone className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <div className="text-xs text-muted-foreground mb-1">屏幕分辨率</div>
