@@ -334,41 +334,73 @@ function App() {
         resolution = "获取失败";
       }
 
-      // 获取 WiFi 信息
+      // 获取 WiFi 信息 - 优化版本
       let wifi = "N/A";
+      let wifiSsid = "N/A";
       try {
-        // 方法1: 检查 WiFi 是否启用
-        const wifiEnabled = await executeAdbCommand([ "-s", deviceId, "shell", "svc", "wifi", "state" ]);
-        const isEnabled = wifiEnabled.trim() === "enabled";
+        // 方法1: 使用 dumpsys connectivity 检查 WiFi 连接状态（最可靠）
+        const connectivityOutput = await executeAdbCommand([ "-s", deviceId, "shell", "dumpsys", "connectivity" ]);
 
-        if (isEnabled) {
-          // 方法2: 检查 WiFi 是否已连接
-          const wifiState = await executeAdbCommand([ "-s", deviceId, "shell", "dumpsys", "wifi", "|", "grep", "mNetworkInfo" ]);
-          if (wifiState.includes("CONNECTED")) {
-            wifi = "已连接";
-          } else if (wifiState.includes("CONNECTING")) {
-            wifi = "正在连接";
-          } else {
-            wifi = "已启用";
-          }
+        // 检查 WiFi 是否已连接
+        if (connectivityOutput.includes("WIFI CONNECTED") || connectivityOutput.includes("state=CONNECTED")) {
+          wifi = "已连接";
+        } else if (connectivityOutput.includes("WIFI CONNECTING") || connectivityOutput.includes("state=CONNECTING")) {
+          wifi = "正在连接";
+        } else if (connectivityOutput.includes("WIFI") || connectivityOutput.includes("type=WIFI")) {
+          // WiFi 已启用但未连接
+          wifi = "已启用";
         } else {
+          // WiFi 关闭或不可用
           wifi = "关闭";
         }
       } catch (e) {
-        // 如果上面的方法失败，尝试备用方法
+        // 备用方法: 使用 dumpsys wifi 解析状态
         try {
           const wifiOutput = await executeAdbCommand([ "-s", deviceId, "shell", "dumpsys", "wifi" ]);
+
+          // 检查 mWifiState 字段
           const stateMatch = wifiOutput.match(/mWifiState:\s*(\d+)/);
           if (stateMatch) {
             const state = parseInt(stateMatch[1]);
-            const stateText = state === 3 ? "已连接" : state === 2 ? "正在连接" : "关闭";
+            // Android WiFi 状态: 0=关闭, 1=开启中, 2=已启用, 3=已连接
+            const stateText = state === 3 ? "已连接" : state === 2 ? "已启用" : state === 1 ? "开启中" : "关闭";
             wifi = stateText;
           } else {
-            wifi = "未知";
+            // 检查是否包含连接信息
+            if (wifiOutput.includes("CONNECTED")) {
+              wifi = "已连接";
+            } else if (wifiOutput.includes("enabled")) {
+              wifi = "已启用";
+            } else {
+              wifi = "未知";
+            }
           }
         } catch (e2) {
           wifi = "获取失败";
         }
+      }
+
+      // 获取 WiFi 名称 (SSID)
+      try {
+        // 方法1: 使用 dumpsys wifi 获取 SSID
+        const wifiOutput = await executeAdbCommand([ "-s", deviceId, "shell", "dumpsys", "wifi" ]);
+        const ssidMatch = wifiOutput.match(/mWifiInfo.*?SSID:\s*"([^"]+)"/)
+                         || wifiOutput.match(/SSID:\s*"([^"]+)"/)
+                         || wifiOutput.match(/connected to\s+([^\s]+)/);
+        if (ssidMatch) {
+          wifiSsid = ssidMatch[1];
+        } else {
+          // 方法2: 使用 ip addr show wlan0 获取 SSID
+          const ipOutput = await executeAdbCommand([ "-s", deviceId, "shell", "ip", "addr", "show", "wlan0" ]);
+          const ipSsidMatch = ipOutput.match(/wlan0.*?ssid\s+"([^"]+)"/);
+          if (ipSsidMatch) {
+            wifiSsid = ipSsidMatch[1];
+          } else {
+            wifiSsid = "N/A";
+          }
+        }
+      } catch (e) {
+        wifiSsid = "获取失败";
       }
 
       // 获取 IP 地址
@@ -395,6 +427,7 @@ function App() {
         cpu,
         resolution,
         wifi,
+        wifiSsid,
         ipAddress,
         securityPatch: securityPatch.trim(),
         kernelVersion: kernelVersion.trim(),
