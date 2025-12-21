@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Toaster, toast } from "sonner";
 import {
   initPlatformTools,
@@ -50,6 +50,9 @@ function App() {
   const [operationLog, setOperationLog] = useState<string[]>([]);
   const [operating, setOperating] = useState(false);
 
+  // 设备信息缓存（单次生命周期内）
+  const deviceInfoCacheRef = useRef<Map<string, DeviceInfo>>(new Map());
+
   // 生成时间戳 (YYYY-MM-DD HH:mm:ss)
   const getTimestamp = () => {
     const now = new Date();
@@ -70,19 +73,29 @@ function App() {
   // 初始化 platform-tools
   useEffect(() => {
     async function init() {
+      const initStartTime = performance.now();
+      console.log("[INIT] 开始初始化 ADB 工具");
       try {
         const isReady = await isPlatformToolsReady();
+        console.log(`[INIT] platform-tools 检查: ${isReady ? '已安装' : '未安装'} (${(performance.now() - initStartTime).toFixed(0)}ms)`);
+
         if (!isReady) {
+          console.log("[INIT] 开始解压 platform-tools");
           await initPlatformTools();
+          console.log(`[INIT] 解压完成 (${(performance.now() - initStartTime).toFixed(0)}ms)`);
         }
+
         const version = await getAdbVersion();
+        console.log(`[INIT] ADB 版本获取完成: ${version.split("\n")[0]} (${(performance.now() - initStartTime).toFixed(0)}ms)`);
         setAdbVersion(version);
         setReady(true);
         toast.success("ADB 工具初始化成功", { description: version.split("\n")[0] });
       } catch (err) {
+        console.error("[INIT] 初始化失败:", err);
         toast.error("初始化失败", { description: String(err) });
       } finally {
         setInitializing(false);
+        console.log(`[INIT] 总初始化时间: ${(performance.now() - initStartTime).toFixed(0)}ms`);
       }
     }
     init();
@@ -90,14 +103,20 @@ function App() {
 
   // 刷新设备列表
   const refreshDevices = async () => {
+    addLog("🔄 刷新设备列表...");
+    const startTime = performance.now();
     try {
       const deviceList = await getDevices();
+      const duration = performance.now() - startTime;
+      addLog(`✅ 设备列表刷新完成: ${deviceList.length} 台设备 (${duration.toFixed(0)}ms)`);
       setDevices(deviceList);
       if (deviceList.length > 0 && !selectedDevice) {
         setSelectedDevice(deviceList[0].id);
       }
       toast.success("设备列表已刷新", { description: `发现 ${deviceList.length} 台设备` });
     } catch (err) {
+      const duration = performance.now() - startTime;
+      addLog(`❌ 获取设备列表失败: ${String(err)} (${duration.toFixed(0)}ms)`);
       toast.error("获取设备列表失败", { description: String(err) });
     }
   };
@@ -116,6 +135,9 @@ function App() {
         setSelectedDevice("");
         setDeviceInfo(null);
       }
+
+      // 从缓存中移除该设备
+      deviceInfoCacheRef.current.delete(deviceId);
 
       // 记录日志
       addLog(`✅ 已断开设备: ${deviceId}`);
@@ -185,75 +207,82 @@ function App() {
     };
   }, [ready, selectedDevice, autoDetect]);
 
-  // 批量系统精简
-  const batchDebloat = async () => {
-    if (!selectedDevice) {
-      toast.error("请先选择设备");
-      return;
-    }
-    setOperating(true);
-    toast.info("开始批量系统精简", { description: "正在处理..." });
-    try {
-      for (const item of BLOATWARE_PACKAGES) {
-        addLog(`正在检查: ${item.name} (${item.package})`);
-        try {
-          // 先检查是否安装
-          const checkOutput = await executeAdbCommand([ "-s", selectedDevice, "shell", "pm", "path", item.package ]);
-          if (checkOutput.includes(item.package)) {
-            await executeAdbCommand([ "-s", selectedDevice, "shell", "pm", "uninstall", "--user", "0", item.package ]);
-            addLog(`✅ 已卸载: ${item.name}`);
-          } else {
-            addLog(`ℹ️ 未安装: ${item.name}`);
-          }
-        } catch (err) {
-          addLog(`⚠️ 跳过 ${item.name}: ${String(err)}`);
-        }
-      }
-      addLog(`🎉 批量系统精简完成！`);
-      toast.success("批量系统精简完成");
-    } finally {
-      setOperating(false);
-    }
-  };
-
   // 清空日志
   const clearLog = () => {
     setOperationLog([]);
     toast.info("日志已清空");
   };
 
-  // 获取设备详细信息
-  const fetchDeviceInfo = async (deviceId: string) => {
+  // 获取设备详细信息（带缓存）
+  const fetchDeviceInfo = async (deviceId: string, forceRefresh: boolean = false) => {
     if (!deviceId) return;
 
+    // 检查缓存
+    if (!forceRefresh && deviceInfoCacheRef.current.has(deviceId)) {
+      addLog(`ℹ️ 使用缓存设备信息: ${deviceId}`);
+      setDeviceInfo(deviceInfoCacheRef.current.get(deviceId) || null);
+      return;
+    }
+
+    addLog(`🔄 开始获取设备信息: ${deviceId} ${forceRefresh ? '(强制刷新)' : ''}`);
+    const startTime = performance.now();
     setLoadingInfo(true);
     setDeviceInfo(null);
 
+    // 记录每个步骤的时间
+    const logStep = (step: string, stepStart: number) => {
+      const duration = performance.now() - stepStart;
+      addLog(`  ⏱️  ${step}: ${duration.toFixed(0)}ms`);
+      return performance.now();
+    };
+
     try {
+      let stepStart = performance.now();
+
       // 获取设备型号
       const model = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.product.model" ]);
+      stepStart = logStep("获取设备型号", stepStart);
+
       // 获取制造商
       const manufacturer = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.product.manufacturer" ]);
+      stepStart = logStep("获取制造商", stepStart);
+
       // 获取品牌（用于过滤广告包）
       const brand = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.product.brand" ]);
+      stepStart = logStep("获取品牌", stepStart);
+
       // 获取 Android 版本
       const androidVersion = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.build.version.release" ]);
+      stepStart = logStep("获取Android版本", stepStart);
+
       // 获取 SDK 版本
       const sdkVersion = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.build.version.sdk" ]);
+      stepStart = logStep("获取SDK版本", stepStart);
+
       // 获取序列号
       const serialNumber = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.serialno" ]);
+      stepStart = logStep("获取序列号", stepStart);
+
       // 获取安全补丁级别
       const securityPatch = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.build.version.security_patch" ]).catch(() => "N/A");
+      stepStart = logStep("获取安全补丁", stepStart);
+
       // 获取构建版本号
       const buildNumber = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.build.version.incremental" ]).catch(() => "N/A");
+      stepStart = logStep("获取构建版本", stepStart);
+
       // 获取主板型号
       const board = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.product.board" ]).catch(() => "N/A");
+      stepStart = logStep("获取主板型号", stepStart);
+
       // 获取内核版本
       const kernelVersion = await executeAdbCommand([ "-s", deviceId, "shell", "uname", "-r" ]).catch(() => "N/A");
+      stepStart = logStep("获取内核版本", stepStart);
 
       // 获取存储信息
       let storage = "N/A";
       try {
+        const storageStart = performance.now();
         const storageOutput = await executeAdbCommand([ "-s", deviceId, "shell", "df", "/data" ]);
         const lines = storageOutput.split("\n").filter(l => l.trim());
         if (lines.length > 1) {
@@ -262,20 +291,22 @@ function App() {
           const usedKb = parseInt(parts[2]);
           const availKb = parseInt(parts[3]);
 
-          // 转换为 GB
           const totalGb = (totalKb / 1024 / 1024).toFixed(1);
           const usedGb = (usedKb / 1024 / 1024).toFixed(1);
           const availGb = (availKb / 1024 / 1024).toFixed(1);
 
           storage = `总: ${totalGb} GB, 已用: ${usedGb} GB, 可用: ${availGb} GB`;
         }
+        logStep("获取存储信息", storageStart);
+        stepStart = performance.now();
       } catch (e) {
-        storage = "获取失败";
+        addLog(`  ⚠️  获取存储信息失败: ${String(e)}`);
       }
 
       // 获取内存信息
       let ram = "N/A";
       try {
+        const ramStart = performance.now();
         // 方法1: 从 /proc/meminfo 获取
         const memOutput = await executeAdbCommand([ "-s", deviceId, "shell", "cat", "/proc/meminfo" ]);
         const totalMatch = memOutput.match(/MemTotal:\s*(\d+)/);
@@ -294,13 +325,16 @@ function App() {
             ram = "未知";
           }
         }
+        logStep("获取内存信息", ramStart);
+        stepStart = performance.now();
       } catch (e) {
-        ram = "获取失败";
+        addLog(`  ⚠️  获取内存信息失败: ${String(e)}`);
       }
 
       // 获取 CPU 信息
       let cpu = "N/A";
       try {
+        const cpuStart = performance.now();
         // 方法1: 从 /proc/cpuinfo 获取
         const cpuOutput = await executeAdbCommand([ "-s", deviceId, "shell", "cat", "/proc/cpuinfo" ]);
 
@@ -326,23 +360,28 @@ function App() {
             cpu = `${coreCount} 核处理器`;
           }
         }
+        logStep("获取CPU信息", cpuStart);
+        stepStart = performance.now();
       } catch (e) {
-        cpu = "获取失败";
+        addLog(`  ⚠️  获取CPU信息失败: ${String(e)}`);
       }
 
       // 获取分辨率
       let resolution = "N/A";
       try {
+        const resolutionStart = performance.now();
         const resolutionOutput = await executeAdbCommand([ "-s", deviceId, "shell", "wm", "size" ]);
         const match = resolutionOutput.match(/Physical size:\s*(\d+x\d+)/);
         if (match) {
           resolution = match[1];
         }
+        logStep("获取分辨率", resolutionStart);
+        stepStart = performance.now();
       } catch (e) {
-        resolution = "获取失败";
+        addLog(`  ⚠️  获取分辨率失败: ${String(e)}`);
       }
 
-      setDeviceInfo({
+      const deviceInfoData: DeviceInfo = {
         model: model.trim(),
         manufacturer: manufacturer.trim(),
         brand: brand.trim(),
@@ -357,9 +396,18 @@ function App() {
         kernelVersion: kernelVersion.trim(),
         buildNumber: buildNumber.trim(),
         board: board.trim()
-      });
+      };
+
+      // 存入缓存
+      deviceInfoCacheRef.current.set(deviceId, deviceInfoData);
+      setDeviceInfo(deviceInfoData);
+
+      const totalTime = performance.now() - startTime;
+      addLog(`✅ 设备信息获取完成: ${totalTime.toFixed(0)}ms`);
 
     } catch (err) {
+      const totalTime = performance.now() - startTime;
+      addLog(`❌ 设备信息获取失败: ${String(err)} (${totalTime.toFixed(0)}ms)`);
       toast.error("获取设备信息失败", { description: String(err) });
       setDeviceInfo(null);
     } finally {

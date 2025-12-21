@@ -1,4 +1,4 @@
-import { RefreshCw, Copy, Loader2, MonitorSmartphone, Info, HardDrive, MemoryStick, Cpu, Shield, Terminal, Activity, Smartphone, CircuitBoard, GitBranch, Box, Server } from "lucide-react";
+import { RefreshCw, Copy, Loader2, MonitorSmartphone, Info, HardDrive, MemoryStick, Cpu, Shield, Terminal, Smartphone, CircuitBoard, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -31,7 +31,7 @@ interface DeviceInfoCardProps {
   selectedDevice: string;
   loadingInfo: boolean;
   deviceInfo: DeviceInfo | null;
-  fetchDeviceInfo: (deviceId: string) => Promise<void>;
+  fetchDeviceInfo: (deviceId: string, forceRefresh?: boolean) => Promise<void>;
 }
 
 export function DeviceInfoCard({
@@ -53,7 +53,7 @@ export function DeviceInfoCard({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => fetchDeviceInfo(selectedDevice)}
+                onClick={() => fetchDeviceInfo(selectedDevice, true)}
                 disabled={loadingInfo}
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${loadingInfo ? "animate-spin" : ""}`} />

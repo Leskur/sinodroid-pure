@@ -11,6 +11,12 @@ mod adb;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // 创建 tokio 运行时供 async 命令使用
+    let rt = tokio::runtime::Runtime::new().expect("Failed to create tokio runtime");
+
+    // 将运行时设置到 Tauri 的 async_runtime
+    tauri::async_runtime::set(rt.handle().clone());
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![

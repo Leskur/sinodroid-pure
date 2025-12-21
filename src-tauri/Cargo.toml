@@ -25,4 +25,5 @@ serde_json = "1"
 # ADB platform-tools 相关依赖
 zip-extract = "0.1"  # 简单的 zip 解压
 anyhow = "1"         # 错误处理
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "sync", "macros"] }  # 异步处理
 

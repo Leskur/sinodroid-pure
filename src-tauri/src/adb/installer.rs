@@ -8,6 +8,8 @@ use super::get_platform_tools_dir;
 /// 初始化 platform-tools
 /// 检查是否已安装，如未安装则从应用资源中提取
 pub fn init_platform_tools(app: &AppHandle) -> Result<()> {
+    eprintln!("[INIT] 开始初始化 platform-tools");
+    let start = std::time::Instant::now();
     let platform_tools_dir = get_platform_tools_dir(app)?;
 
     let resource_path = app
@@ -15,6 +17,7 @@ pub fn init_platform_tools(app: &AppHandle) -> Result<()> {
         .resolve("platform-tools.zip", tauri::path::BaseDirectory::Resource)
         .context("Failed to resolve resource path")?;
 
+    eprintln!("[INIT] 解压 platform-tools.zip...");
     let file = File::open(&resource_path).context("Failed to open zip file")?;
     extract(
         file,
@@ -28,6 +31,8 @@ pub fn init_platform_tools(app: &AppHandle) -> Result<()> {
     #[cfg(unix)]
     set_executable_permissions(&platform_tools_dir)?;
 
+    let duration = start.elapsed();
+    eprintln!("[INIT] platform-tools 初始化完成 - {:?}", duration);
     Ok(())
 }
 
