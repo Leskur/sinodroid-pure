@@ -12,11 +12,12 @@
   "app": {
     "windows": [
       {
-        "title": "sinodroid-pure",
-        "width": 1280,
-        "height": 800,
-        "minWidth": 1024,
-        "minHeight": 768
+        "title": "Sinodroid Pure",
+        "width": 1100,
+        "height": 720,
+        "minWidth": 960,
+        "minHeight": 600,
+        "resizable": true
       }
     ],
     "security": {
