@@ -1,4 +1,4 @@
-import { RefreshCw, Copy, Loader2, MonitorSmartphone, Info, Battery, Wifi, HardDrive, MemoryStick, Cpu, Shield, Terminal, Activity, Network, Smartphone } from "lucide-react";
+import { RefreshCw, Copy, Loader2, MonitorSmartphone, Info, Battery, Wifi, HardDrive, MemoryStick, Cpu, Shield, Terminal, Activity, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -22,11 +22,8 @@ export interface DeviceInfo {
   // 新增信息（按重要程度排序）
   ipAddress: string;        // IP 地址 - 高重要性
   securityPatch: string;    // 安全补丁 - 高重要性
-  foregroundApp: string;    // 前台应用 - 中重要性
   kernelVersion: string;    // 内核版本 - 中重要性
   buildNumber: string;      // 构建版本 - 中重要性
-  macAddress: string;       // MAC 地址 - 低重要性
-  simStatus: string;        // SIM 卡状态 - 低重要性
   board: string;            // 主板型号 - 低重要性
 }
 
@@ -199,30 +196,6 @@ export function DeviceInfoCard({
 
             {/* 其他信息 - 第四行 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Smartphone className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">前台应用</div>
-                  <div className="font-medium text-xs break-all">{deviceInfo.foregroundApp}</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Wifi className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">MAC 地址</div>
-                  <div className="font-medium text-sm font-mono">{deviceInfo.macAddress}</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Info className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">SIM 卡状态</div>
-                  <div className="font-medium text-sm">{deviceInfo.simStatus}</div>
-                </div>
-              </div>
-
               <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
                 <Info className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1 min-w-0">
