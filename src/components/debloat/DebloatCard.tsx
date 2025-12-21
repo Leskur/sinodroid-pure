@@ -164,7 +164,7 @@ export function DebloatCard({
             <div className="space-y-1">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Trash2 className="w-5 h-5" />
-                卸载预装应用
+                卸载预装
               </CardTitle>
               <CardDescription className="flex items-center gap-2 flex-wrap">
                 自动检测应用状态，支持卸载/恢复预装应用

@@ -490,7 +490,7 @@ function App() {
   // 菜单名称映射
   const menuNames: Record<SidebarType, string> = {
     device: "设备管理",
-    debloat: "卸载预装应用",
+    debloat: "卸载预装",
     log: "系统记录"
   };
 

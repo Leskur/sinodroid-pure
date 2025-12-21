@@ -44,7 +44,7 @@ export function Sidebar({
             onClick={() => setActiveSidebar("debloat")}
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            卸载预装应用
+            卸载预装
           </Button>
           <Button
             variant={activeSidebar === "log" ? "default" : "ghost"}
