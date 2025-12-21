@@ -80,6 +80,29 @@ function App() {
     }
   };
 
+  // 断开设备连接
+  const disconnectDevice = async (deviceId: string) => {
+    try {
+      await executeAdbCommand(["disconnect", deviceId]);
+      toast.success("设备已断开", { description: deviceId });
+
+      // 刷新设备列表
+      setTimeout(() => refreshDevices(), 300);
+
+      // 如果断开的是当前选中的设备，清空选择
+      if (selectedDevice === deviceId) {
+        setSelectedDevice("");
+        setDeviceInfo(null);
+      }
+
+      // 记录日志
+      setOperationLog(prev => [...prev, `✅ 已断开设备: ${deviceId}`]);
+    } catch (err) {
+      toast.error("断开设备失败", { description: String(err) });
+      setOperationLog(prev => [...prev, `❌ 断开设备失败 ${deviceId}: ${String(err)}`]);
+    }
+  };
+
   // 自动检测设备插拔
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -424,6 +447,7 @@ function App() {
                     refreshDevices={refreshDevices}
                     autoDetect={autoDetect}
                     setAutoDetect={setAutoDetect}
+                    disconnectDevice={disconnectDevice}
                   />
                   <WiFiConnectCard
                     executeAdbCommand={executeAdbCommand}
