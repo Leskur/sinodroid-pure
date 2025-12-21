@@ -271,12 +271,23 @@ function App() {
       // 获取内存信息
       let ram = "N/A";
       try {
+        // 方法1: 从 /proc/meminfo 获取
         const memOutput = await executeAdbCommand(["-s", deviceId, "shell", "cat", "/proc/meminfo"]);
         const totalMatch = memOutput.match(/MemTotal:\s*(\d+)/);
         if (totalMatch) {
           const totalKb = parseInt(totalMatch[1]);
           const totalGb = (totalKb / 1024 / 1024).toFixed(1);
           ram = `${totalGb} GB`;
+        } else {
+          // 方法2: 使用 getprop 获取
+          const memProp = await executeAdbCommand(["-s", deviceId, "shell", "getprop", "ro.product.mem.max"]);
+          if (memProp.trim()) {
+            const memMb = parseInt(memProp.trim());
+            const memGb = (memMb / 1024).toFixed(1);
+            ram = `${memGb} GB`;
+          } else {
+            ram = "未知";
+          }
         }
       } catch (e) {
         ram = "获取失败";
@@ -285,13 +296,29 @@ function App() {
       // 获取 CPU 信息
       let cpu = "N/A";
       try {
+        // 方法1: 从 /proc/cpuinfo 获取
         const cpuOutput = await executeAdbCommand(["-s", deviceId, "shell", "cat", "/proc/cpuinfo"]);
-        const modelMatch = cpuOutput.match(/Hardware\s*:\s*(.+)/);
+
+        // 尝试多种可能的 CPU 型号字段
+        const modelMatch = cpuOutput.match(/Hardware\s*:\s*(.+)/)
+                          || cpuOutput.match(/processor\s*:\s*0\s*\n.*?model name\s*:\s*(.+)/s)
+                          || cpuOutput.match(/model name\s*:\s*(.+)/);
+
+        // 统计核心数
         const coresMatch = cpuOutput.match(/processor\s*:\s*(\d+)/g);
+        const coreCount = coresMatch ? coresMatch.length : 1;
+
         if (modelMatch) {
           cpu = modelMatch[1].trim();
-          if (coresMatch) {
-            cpu += ` (${coresMatch.length} 核)`;
+          cpu += ` (${coreCount} 核)`;
+        } else {
+          // 方法2: 使用 getprop 获取 CPU 信息
+          const cpuProp = await executeAdbCommand(["-s", deviceId, "shell", "getprop", "ro.hardware"]);
+          if (cpuProp.trim()) {
+            cpu = cpuProp.trim();
+            cpu += ` (${coreCount} 核)`;
+          } else {
+            cpu = `${coreCount} 核处理器`;
           }
         }
       } catch (e) {
