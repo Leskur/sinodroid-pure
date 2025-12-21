@@ -37,7 +37,7 @@ function App() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string>("");
   const [activeSidebar, setActiveSidebar] = useState<SidebarType>("device");
-  const [autoDetect, setAutoDetect] = useState(true); // 自动检测开关
+  const [autoDetect, setAutoDetect] = useState(false); // 自动检测开关
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
 
