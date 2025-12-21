@@ -14,7 +14,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import {
   RefreshCw,
@@ -22,7 +21,18 @@ import {
   Eraser,
   Copy,
   Play,
-  Loader2
+  Loader2,
+  MessageSquare,
+  Trash2,
+  ChevronsUpDown,
+  ChevronsDownUp,
+  Info,
+  Cpu,
+  MemoryStick,
+  HardDrive,
+  Battery,
+  Wifi,
+  MonitorSmartphone
 } from "lucide-react";
 
 // 为中国安卓设备优化的预设命令
@@ -39,6 +49,20 @@ const BLOATWARE_PACKAGES = [
 
 type TabType = "device" | "debloat";
 
+interface DeviceInfo {
+  model: string;
+  manufacturer: string;
+  androidVersion: string;
+  sdkVersion: string;
+  serialNumber: string;
+  battery: string;
+  storage: string;
+  ram: string;
+  cpu: string;
+  resolution: string;
+  wifi: string;
+}
+
 function App() {
   const [initializing, setInitializing] = useState(true);
   const [ready, setReady] = useState(false);
@@ -47,10 +71,13 @@ function App() {
   const [selectedDevice, setSelectedDevice] = useState<string>("");
   const [activeTab, setActiveTab] = useState<TabType>("device");
   const [autoDetect, setAutoDetect] = useState(true); // 自动检测开关
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
+  const [loadingInfo, setLoadingInfo] = useState(false);
 
-  // 去广告/优化
+  // 去广告/操作日志
   const [operationLog, setOperationLog] = useState<string[]>([]);
   const [operating, setOperating] = useState(false);
+  const [logExpanded, setLogExpanded] = useState(false); // 日志面板展开状态
 
   // 初始化 platform-tools
   useEffect(() => {
@@ -183,6 +210,144 @@ function App() {
     setOperationLog([]);
     toast.info("日志已清空");
   };
+
+  // 获取设备详细信息
+  const fetchDeviceInfo = async (deviceId: string) => {
+    if (!deviceId) return;
+
+    setLoadingInfo(true);
+    setDeviceInfo(null);
+
+    try {
+      // 获取设备型号
+      const model = await executeAdbCommand(["-s", deviceId, "shell", "getprop", "ro.product.model"]);
+      // 获取制造商
+      const manufacturer = await executeAdbCommand(["-s", deviceId, "shell", "getprop", "ro.product.manufacturer"]);
+      // 获取 Android 版本
+      const androidVersion = await executeAdbCommand(["-s", deviceId, "shell", "getprop", "ro.build.version.release"]);
+      // 获取 SDK 版本
+      const sdkVersion = await executeAdbCommand(["-s", deviceId, "shell", "getprop", "ro.build.version.sdk"]);
+      // 获取序列号
+      const serialNumber = await executeAdbCommand(["-s", deviceId, "shell", "getprop", "ro.serialno"]);
+
+      // 获取电池信息
+      let battery = "N/A";
+      try {
+        const batteryOutput = await executeAdbCommand(["-s", deviceId, "shell", "dumpsys", "battery"]);
+        const levelMatch = batteryOutput.match(/level:\s*(\d+)/);
+        const statusMatch = batteryOutput.match(/status:\s*(\d+)/);
+        if (levelMatch) {
+          const level = levelMatch[1];
+          const status = statusMatch ? parseInt(statusMatch[1]) : 1;
+          const statusText = status === 2 ? "充电中" : status === 3 ? "充满" : "使用中";
+          battery = `${level}% (${statusText})`;
+        }
+      } catch (e) {
+        battery = "获取失败";
+      }
+
+      // 获取存储信息
+      let storage = "N/A";
+      try {
+        const storageOutput = await executeAdbCommand(["-s", deviceId, "shell", "df", "/data"]);
+        const lines = storageOutput.split("\n").filter(l => l.trim());
+        if (lines.length > 1) {
+          const parts = lines[1].trim().split(/\s+/);
+          const total = parts[1];
+          const used = parts[2];
+          const avail = parts[3];
+          storage = `总: ${total}, 已用: ${used}, 可用: ${avail}`;
+        }
+      } catch (e) {
+        storage = "获取失败";
+      }
+
+      // 获取内存信息
+      let ram = "N/A";
+      try {
+        const memOutput = await executeAdbCommand(["-s", deviceId, "shell", "cat", "/proc/meminfo"]);
+        const totalMatch = memOutput.match(/MemTotal:\s*(\d+)/);
+        if (totalMatch) {
+          const totalKb = parseInt(totalMatch[1]);
+          const totalGb = (totalKb / 1024 / 1024).toFixed(1);
+          ram = `${totalGb} GB`;
+        }
+      } catch (e) {
+        ram = "获取失败";
+      }
+
+      // 获取 CPU 信息
+      let cpu = "N/A";
+      try {
+        const cpuOutput = await executeAdbCommand(["-s", deviceId, "shell", "cat", "/proc/cpuinfo"]);
+        const modelMatch = cpuOutput.match(/Hardware\s*:\s*(.+)/);
+        const coresMatch = cpuOutput.match(/processor\s*:\s*(\d+)/g);
+        if (modelMatch) {
+          cpu = modelMatch[1].trim();
+          if (coresMatch) {
+            cpu += ` (${coresMatch.length} 核)`;
+          }
+        }
+      } catch (e) {
+        cpu = "获取失败";
+      }
+
+      // 获取分辨率
+      let resolution = "N/A";
+      try {
+        const resolutionOutput = await executeAdbCommand(["-s", deviceId, "shell", "wm", "size"]);
+        const match = resolutionOutput.match(/Physical size:\s*(\d+x\d+)/);
+        if (match) {
+          resolution = match[1];
+        }
+      } catch (e) {
+        resolution = "获取失败";
+      }
+
+      // 获取 WiFi 信息
+      let wifi = "N/A";
+      try {
+        const wifiOutput = await executeAdbCommand(["-s", deviceId, "shell", "dumpsys", "wifi"]);
+        const stateMatch = wifiOutput.match(/mWifiState:\s*(\d+)/);
+        if (stateMatch) {
+          const state = parseInt(stateMatch[1]);
+          const stateText = state === 3 ? "已连接" : state === 2 ? "正在连接" : "关闭";
+          wifi = stateText;
+        }
+      } catch (e) {
+        wifi = "获取失败";
+      }
+
+      setDeviceInfo({
+        model: model.trim(),
+        manufacturer: manufacturer.trim(),
+        androidVersion: androidVersion.trim(),
+        sdkVersion: sdkVersion.trim(),
+        serialNumber: serialNumber.trim(),
+        battery,
+        storage,
+        ram,
+        cpu,
+        resolution,
+        wifi
+      });
+
+    } catch (err) {
+      toast.error("获取设备信息失败", { description: String(err) });
+      setDeviceInfo(null);
+    } finally {
+      setLoadingInfo(false);
+    }
+  };
+
+  // 当选择的设备变化时，自动获取设备信息
+  useEffect(() => {
+    if (selectedDevice) {
+      fetchDeviceInfo(selectedDevice);
+    } else {
+      setDeviceInfo(null);
+    }
+  }, [selectedDevice]);
 
   // 初始化中
   if (initializing) {
@@ -323,27 +488,131 @@ function App() {
               {/* 当前设备信息 */}
               <Card className="lg:col-span-2">
                 <CardHeader>
-                  <CardTitle className="text-lg">当前设备</CardTitle>
-                  <CardDescription>设备信息展示</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">当前设备</CardTitle>
+                      <CardDescription>设备详细信息展示</CardDescription>
+                    </div>
+                    {selectedDevice && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => fetchDeviceInfo(selectedDevice)}
+                          disabled={loadingInfo}
+                        >
+                          <RefreshCw className={`w-4 h-4 mr-2 ${loadingInfo ? "animate-spin" : ""}`} />
+                          刷新
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            navigator.clipboard.writeText(selectedDevice);
+                            toast.success("已复制到剪贴板");
+                          }}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  {selectedDevice ? (
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <code className="text-sm font-mono">{selectedDevice}</code>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          navigator.clipboard.writeText(selectedDevice);
-                          toast.success("已复制到剪贴板");
-                        }}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
+                  {!selectedDevice ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      请先选择设备
+                    </div>
+                  ) : loadingInfo ? (
+                    <div className="flex items-center justify-center py-8 text-muted-foreground">
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      正在获取设备信息...
+                    </div>
+                  ) : deviceInfo ? (
+                    <div className="space-y-4">
+                      {/* 基本信息 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
+                          <MonitorSmartphone className="w-5 h-5 text-primary mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground mb-1">设备型号</div>
+                            <div className="font-medium text-sm truncate" title={deviceInfo.model}>
+                              {deviceInfo.model}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">制造商: {deviceInfo.manufacturer}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
+                          <Info className="w-5 h-5 text-primary mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground mb-1">Android 版本</div>
+                            <div className="font-medium text-sm">{deviceInfo.androidVersion}</div>
+                            <div className="text-xs text-muted-foreground mt-1">SDK: {deviceInfo.sdkVersion}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
+                          <Battery className="w-5 h-5 text-primary mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground mb-1">电池状态</div>
+                            <div className="font-medium text-sm">{deviceInfo.battery}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
+                          <Wifi className="w-5 h-5 text-primary mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground mb-1">WiFi 状态</div>
+                            <div className="font-medium text-sm">{deviceInfo.wifi}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
+                          <HardDrive className="w-5 h-5 text-primary mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground mb-1">存储空间</div>
+                            <div className="font-medium text-xs break-words leading-relaxed">{deviceInfo.storage}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
+                          <MemoryStick className="w-5 h-5 text-primary mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground mb-1">内存 (RAM)</div>
+                            <div className="font-medium text-sm">{deviceInfo.ram}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border md:col-span-2">
+                          <Cpu className="w-5 h-5 text-primary mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground mb-1">处理器 (CPU)</div>
+                            <div className="font-medium text-sm break-words">{deviceInfo.cpu}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border md:col-span-2">
+                          <MonitorSmartphone className="w-5 h-5 text-primary mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground mb-1">屏幕分辨率</div>
+                            <div className="font-medium text-sm">{deviceInfo.resolution}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 底部设备 ID */}
+                      <div className="pt-3 border-t">
+                        <div className="text-xs text-muted-foreground mb-1">设备 ID</div>
+                        <code className="text-xs font-mono bg-muted/50 px-2 py-1 rounded block break-all">{selectedDevice}</code>
+                        {deviceInfo.serialNumber && deviceInfo.serialNumber !== "N/A" && (
+                          <div className="text-xs text-muted-foreground mt-1">序列号: {deviceInfo.serialNumber}</div>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
-                      请先选择设备
+                      无法获取设备信息
                     </div>
                   )}
                 </CardContent>
@@ -414,32 +683,73 @@ function App() {
                     </div>
                   ))}
                 </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium">操作日志</h3>
-                    <Button size="sm" variant="ghost" onClick={clearLog}>
-                      清空
-                    </Button>
-                  </div>
-                  <ScrollArea className="h-48 rounded-md border bg-muted/30 p-3">
-                    <div className="space-y-1 font-mono text-xs">
-                      {operationLog.length === 0 ? (
-                        <div className="text-muted-foreground">暂无操作记录</div>
-                      ) : (
-                        operationLog.map((log, idx) => (
-                          <div key={idx} className="whitespace-pre-wrap">{log}</div>
-                        ))
-                      )}
-                    </div>
-                  </ScrollArea>
-                </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+      </div>
+
+      {/* VSCode 风格的底部状态栏和日志面板 */}
+      {logExpanded && (
+        <div className="fixed bottom-12 left-4 right-4 bg-card border rounded-lg shadow-lg z-50 animate-in slide-in-from-bottom-2">
+          <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/50">
+            <div className="flex items-center gap-3">
+              <MessageSquare className="w-4 h-4" />
+              <span className="text-sm font-medium">操作日志</span>
+              <span className="text-xs text-muted-foreground">({operationLog.length} 条记录)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="ghost" onClick={clearLog} disabled={operationLog.length === 0}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setLogExpanded(false)}>
+                <ChevronsDownUp className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          <ScrollArea className="h-64 p-3">
+            <div className="space-y-1 font-mono text-xs">
+              {operationLog.length === 0 ? (
+                <div className="text-muted-foreground">暂无操作记录</div>
+              ) : (
+                operationLog.map((log, idx) => (
+                  <div key={idx} className="whitespace-pre-wrap">{log}</div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+      )}
+
+      {/* 底部状态栏 */}
+      <div className="fixed bottom-0 left-0 right-0 bg-muted border-t z-40">
+        <div className="container mx-auto px-4 h-12 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 px-3"
+              onClick={() => setLogExpanded(!logExpanded)}
+            >
+              {logExpanded ? (
+                <ChevronsDownUp className="w-4 h-4 mr-2" />
+              ) : (
+                <MessageSquare className="w-4 h-4 mr-2" />
+              )}
+              <span className="text-sm">操作日志</span>
+              {operationLog.length > 0 && (
+                <span className="ml-2 text-xs bg-primary text-primary-foreground px-1.5 rounded-full">
+                  {operationLog.length}
+                </span>
+              )}
+            </Button>
+          </div>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span>ADB: {adbVersion.split("\n")[0]}</span>
+            <span>•</span>
+            <span>设备: {devices.length}</span>
+          </div>
+        </div>
       </div>
 
       {/* Toast 提示 */}
