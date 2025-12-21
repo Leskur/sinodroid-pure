@@ -52,23 +52,33 @@ export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConne
     try {
       // 执行 ADB WiFi 连接命令
       const address = `${ip}:${port}`;
-      await executeAdbCommand(["connect", address]);
+      const result = await executeAdbCommand(["connect", address]);
 
-      // 添加到历史记录（保持最近 5 条）
-      const newHistory: WiFiHistory[] = [
-        { ip, port, timestamp: Date.now() },
-        ...history.filter(h => !(h.ip === ip && h.port === port))
-      ].slice(0, 5);
+      // 检查连接是否真正成功
+      // ADB connect 成功通常返回 "connected to <address>"
+      // 失败则返回 "unable to connect" 或 "cannot connect"
+      const isSuccess = result.toLowerCase().includes("connected") && !result.toLowerCase().includes("unable") && !result.toLowerCase().includes("cannot");
 
-      saveHistory(newHistory);
+      if (isSuccess) {
+        // 连接成功后才添加到历史记录（保持最近 5 条）
+        const newHistory: WiFiHistory[] = [
+          { ip, port, timestamp: Date.now() },
+          ...history.filter(h => !(h.ip === ip && h.port === port))
+        ].slice(0, 5);
 
-      toast.success("WiFi 连接成功", { description: address });
+        saveHistory(newHistory);
 
-      // 刷新设备列表
-      setTimeout(() => refreshDevices(), 500);
+        toast.success("WiFi 连接成功", { description: address });
 
-      // 清空输入
-      setIp("");
+        // 刷新设备列表
+        setTimeout(() => refreshDevices(), 500);
+
+        // 清空输入
+        setIp("");
+      } else {
+        // 连接失败
+        toast.error("WiFi 连接失败", { description: result || "连接失败" });
+      }
     } catch (err) {
       toast.error("WiFi 连接失败", { description: String(err) });
     } finally {
@@ -81,11 +91,17 @@ export function WiFiConnectCard({ executeAdbCommand, refreshDevices }: WiFiConne
     setConnecting(true);
     try {
       const address = `${item.ip}:${item.port}`;
-      await executeAdbCommand(["connect", address]);
+      const result = await executeAdbCommand(["connect", address]);
 
-      toast.success("WiFi 连接成功", { description: address });
+      // 检查连接是否真正成功
+      const isSuccess = result.toLowerCase().includes("connected") && !result.toLowerCase().includes("unable") && !result.toLowerCase().includes("cannot");
 
-      setTimeout(() => refreshDevices(), 500);
+      if (isSuccess) {
+        toast.success("WiFi 连接成功", { description: address });
+        setTimeout(() => refreshDevices(), 500);
+      } else {
+        toast.error("WiFi 连接失败", { description: result || "连接失败" });
+      }
     } catch (err) {
       toast.error("WiFi 连接失败", { description: String(err) });
     } finally {
