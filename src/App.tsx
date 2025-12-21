@@ -7,33 +7,17 @@ import {
   getDevices,
   executeAdbCommand,
   type Device,
-} from "./lib/adb";
-import AppIcon from "./components/AppIcon";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import {
-  RefreshCw,
-  Smartphone,
-  Eraser,
-  Copy,
-  Play,
-  Loader2,
-  MessageSquare,
-  Trash2,
-  Info,
-  Cpu,
-  MemoryStick,
-  HardDrive,
-  Battery,
-  Wifi,
-  MonitorSmartphone
-} from "lucide-react";
+} from "@/lib/adb";
+import { LoadingScreen } from "@/components/common/LoadingScreen";
+import { ErrorScreen } from "@/components/common/ErrorScreen";
+import { Sidebar, type SidebarType } from "@/components/layout/Sidebar";
+import { DeviceListCard } from "@/components/device/DeviceListCard";
+import { DeviceInfoCard, type DeviceInfo } from "@/components/device/DeviceInfoCard";
+import { DebloatCard, type BloatwarePackage } from "@/components/debloat/DebloatCard";
+import { LogPanel } from "@/components/logs/LogPanel";
 
 // 为中国安卓设备优化的预设命令
-const BLOATWARE_PACKAGES = [
+const BLOATWARE_PACKAGES: BloatwarePackage[] = [
   { name: "小米广告服务", package: "com.miui.systemAdSolution", desc: "小米系统广告服务" },
   { name: "华为彩信广告", package: "com.huawei.android.hwouc", desc: "华为系统更新广告" },
   { name: "OPPO 推送服务", package: "com.oppo.pushservice", desc: "OPPO 推送广告" },
@@ -43,22 +27,6 @@ const BLOATWARE_PACKAGES = [
   { name: "OPPO 桌面广告", package: "com.oppo.launcher.res", desc: "OPPO 桌面广告" },
   { name: "VIVO 桌面广告", package: "com.bbk.launcher2", desc: "VIVO 桌面广告" },
 ];
-
-type SidebarType = "device" | "debloat" | "log";
-
-interface DeviceInfo {
-  model: string;
-  manufacturer: string;
-  androidVersion: string;
-  sdkVersion: string;
-  serialNumber: string;
-  battery: string;
-  storage: string;
-  ram: string;
-  cpu: string;
-  resolution: string;
-  wifi: string;
-}
 
 function App() {
   const [initializing, setInitializing] = useState(true);
@@ -403,412 +371,70 @@ function App() {
 
   // 初始化中
   if (initializing) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center space-y-4 max-w-md">
-          <div className="mx-auto w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <h2 className="text-2xl font-bold text-foreground">🚀 正在初始化 ADB 工具</h2>
-          <p className="text-muted-foreground">首次启动需要解压 platform-tools，请稍候...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // 初始化失败
   if (!ready) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardHeader>
-            <div className="text-4xl text-center mb-2">❌</div>
-            <CardTitle className="text-center">初始化失败</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-center">请检查 ADB 环境配置</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <ErrorScreen />;
   }
 
   return (
     <div className="min-h-screen bg-background flex">
       {/* 侧边栏 */}
-      <aside className="w-64 border-r bg-card/50 overflow-y-auto flex-shrink-0 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden h-screen sticky top-0">
-        <div className="p-4 space-y-4">
-          {/* Logo 区域 */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-lg flex items-center justify-center">
-                <Smartphone className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                Sinodroid Pure
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Badge variant="secondary" className="flex-1 justify-center">已连接: {devices.length}</Badge>
-              <Badge variant="outline" className="flex-1 justify-center text-[10px]">{adbVersion.split("\n")[0]}</Badge>
-            </div>
-          </div>
-
-          {/* 导航菜单 */}
-          <nav className="space-y-2">
-            <Button
-              variant={activeSidebar === "device" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveSidebar("device")}
-            >
-              <Smartphone className="w-4 h-4 mr-2" />
-              设备管理
-            </Button>
-            <Button
-              variant={activeSidebar === "debloat" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveSidebar("debloat")}
-            >
-              <Eraser className="w-4 h-4 mr-2" />
-              去广告
-            </Button>
-            <Button
-              variant={activeSidebar === "log" ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveSidebar("log")}
-            >
-              <MessageSquare className="w-4 h-4 mr-2" />
-              操作日志
-              {operationLog.length > 0 && (
-                <span className="ml-auto text-xs bg-primary text-primary-foreground px-1.5 rounded-full">
-                  {operationLog.length}
-                </span>
-              )}
-            </Button>
-          </nav>
-        </div>
-      </aside>
+      <Sidebar
+        activeSidebar={activeSidebar}
+        setActiveSidebar={setActiveSidebar}
+        devicesCount={devices.length}
+        adbVersion={adbVersion}
+        operationLogCount={operationLog.length}
+      />
 
       {/* 内容区域 */}
       <main className="flex-1 overflow-y-auto p-6 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden h-screen">
-          {/* 设备管理内容 */}
-          {activeSidebar === "device" && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* 设备列表 */}
-                <Card className="lg:col-span-1">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Smartphone className="w-5 h-5" />
-                      设备列表
-                    </CardTitle>
-                    <CardDescription>选择要操作的设备</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={refreshDevices}
-                        className="flex-1"
-                        variant="secondary"
-                      >
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        刷新
-                      </Button>
-                      <Button
-                        onClick={() => setAutoDetect(!autoDetect)}
-                        className={`flex-1 ${autoDetect ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-600'}`}
-                        variant={autoDetect ? "default" : "secondary"}
-                      >
-                        {autoDetect ? "自动: 开" : "自动: 关"}
-                      </Button>
-                    </div>
-                    {autoDetect && (
-                      <div className="text-xs text-muted-foreground flex items-center gap-1">
-                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        自动检测中 (每2秒)
-                      </div>
-                    )}
-                    <ScrollArea className="h-60 rounded-md border [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden">
-                      <div className="p-2 space-y-2">
-                        {devices.length === 0 ? (
-                          <div className="text-center py-8 text-muted-foreground text-sm">
-                            未发现设备
-                          </div>
-                        ) : (
-                          devices.map((device) => (
-                            <Button
-                              key={device.id}
-                              variant={selectedDevice === device.id ? "default" : "ghost"}
-                              className={cn(
-                                "w-full justify-start text-left font-mono text-xs",
-                                selectedDevice === device.id && "bg-primary text-primary-foreground"
-                              )}
-                              onClick={() => setSelectedDevice(device.id)}
-                            >
-                              <span className="truncate">{device.id}</span>
-                              <Badge
-                                variant={device.status === "device" ? "default" : "secondary"}
-                                className={cn(
-                                  "ml-auto text-[10px]",
-                                  device.status === "device" ? "bg-green-600" : "bg-gray-500"
-                                )}
-                              >
-                                {device.status}
-                              </Badge>
-                            </Button>
-                          ))
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-
-                {/* 当前设备信息 */}
-                <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg">当前设备</CardTitle>
-                        <CardDescription>设备详细信息展示</CardDescription>
-                      </div>
-                      {selectedDevice && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => fetchDeviceInfo(selectedDevice)}
-                            disabled={loadingInfo}
-                          >
-                            <RefreshCw className={`w-4 h-4 mr-2 ${loadingInfo ? "animate-spin" : ""}`} />
-                            刷新
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              navigator.clipboard.writeText(selectedDevice);
-                              toast.success("已复制到剪贴板");
-                            }}
-                          >
-                            <Copy className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {!selectedDevice ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        请先选择设备
-                      </div>
-                    ) : loadingInfo ? (
-                      <div className="flex items-center justify-center py-8 text-muted-foreground">
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        正在获取设备信息...
-                      </div>
-                    ) : deviceInfo ? (
-                      <div className="space-y-4">
-                        {/* 基本信息 */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                            <MonitorSmartphone className="w-5 h-5 text-primary mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-muted-foreground mb-1">设备型号</div>
-                              <div className="font-medium text-sm truncate" title={deviceInfo.model}>
-                                {deviceInfo.model}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1">制造商: {deviceInfo.manufacturer}</div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                            <Info className="w-5 h-5 text-primary mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-muted-foreground mb-1">Android 版本</div>
-                              <div className="font-medium text-sm">{deviceInfo.androidVersion}</div>
-                              <div className="text-xs text-muted-foreground mt-1">SDK: {deviceInfo.sdkVersion}</div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                            <Battery className="w-5 h-5 text-primary mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-muted-foreground mb-1">电池状态</div>
-                              <div className="font-medium text-sm">{deviceInfo.battery}</div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                            <Wifi className="w-5 h-5 text-primary mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-muted-foreground mb-1">WiFi 状态</div>
-                              <div className="font-medium text-sm">{deviceInfo.wifi}</div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                            <HardDrive className="w-5 h-5 text-primary mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-muted-foreground mb-1">存储空间</div>
-                              <div className="font-medium text-xs break-words leading-relaxed">{deviceInfo.storage}</div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                            <MemoryStick className="w-5 h-5 text-primary mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-muted-foreground mb-1">内存 (RAM)</div>
-                              <div className="font-medium text-sm">{deviceInfo.ram}</div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border md:col-span-2">
-                            <Cpu className="w-5 h-5 text-primary mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-muted-foreground mb-1">处理器 (CPU)</div>
-                              <div className="font-medium text-sm break-words">{deviceInfo.cpu}</div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border md:col-span-2">
-                            <MonitorSmartphone className="w-5 h-5 text-primary mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-muted-foreground mb-1">屏幕分辨率</div>
-                              <div className="font-medium text-sm">{deviceInfo.resolution}</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* 底部设备 ID */}
-                        <div className="pt-3 border-t">
-                          <div className="text-xs text-muted-foreground mb-1">设备 ID</div>
-                          <code className="text-xs font-mono bg-muted/50 px-2 py-1 rounded block break-all">{selectedDevice}</code>
-                          {deviceInfo.serialNumber && deviceInfo.serialNumber !== "N/A" && (
-                            <div className="text-xs text-muted-foreground mt-1">序列号: {deviceInfo.serialNumber}</div>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        无法获取设备信息
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+        {/* 设备管理内容 */}
+        {activeSidebar === "device" && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <DeviceListCard
+                devices={devices}
+                selectedDevice={selectedDevice}
+                setSelectedDevice={setSelectedDevice}
+                refreshDevices={refreshDevices}
+                autoDetect={autoDetect}
+                setAutoDetect={setAutoDetect}
+              />
+              <DeviceInfoCard
+                selectedDevice={selectedDevice}
+                loadingInfo={loadingInfo}
+                deviceInfo={deviceInfo}
+                fetchDeviceInfo={fetchDeviceInfo}
+              />
             </div>
-          )}
+          </div>
+        )}
 
-          {/* 去广告内容 */}
-          {activeSidebar === "debloat" && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Eraser className="w-5 h-5" />
-                      批量去广告
-                    </CardTitle>
-                    <CardDescription>自动识别并卸载常见国产手机广告组件</CardDescription>
-                  </div>
-                  <Button
-                    variant="destructive"
-                    onClick={batchDebloat}
-                    disabled={!selectedDevice || operating}
-                    size="lg"
-                  >
-                    {operating ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Play className="w-4 h-4" />
-                    )}
-                    <span className="ml-2">{operating ? "执行中..." : "一键去广告"}</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-2">
-                  {BLOATWARE_PACKAGES.map((item) => (
-                    <div key={item.package} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <AppIcon package={item.package} size={28} />
-                        <div className="min-w-0">
-                          <div className="font-medium text-sm">{item.name}</div>
-                          <div className="text-xs text-muted-foreground font-mono">{item.package}</div>
-                          <div className="text-xs text-muted-foreground">{item.desc}</div>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          if (!selectedDevice) return;
-                          setOperating(true);
-                          executeAdbCommand([ "-s", selectedDevice, "shell", "pm", "uninstall", "--user", "0", item.package ])
-                            .then(() => {
-                              setOperationLog([...operationLog, `✅ 已卸载: ${item.name}`]);
-                              toast.success("卸载成功", { description: item.name });
-                            })
-                            .catch(err => {
-                              setOperationLog([...operationLog, `❌ 失败 ${item.name}: ${String(err)}`]);
-                              toast.error("卸载失败", { description: item.name });
-                            })
-                            .finally(() => setOperating(false));
-                        }}
-                        disabled={!selectedDevice || operating}
-                      >
-                        卸载
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+        {/* 去广告内容 */}
+        {activeSidebar === "debloat" && (
+          <DebloatCard
+            selectedDevice={selectedDevice}
+            operating={operating}
+            bloatwarePackages={BLOATWARE_PACKAGES}
+            operationLog={operationLog}
+            setOperationLog={setOperationLog}
+            setOperating={setOperating}
+            executeAdbCommand={executeAdbCommand}
+          />
+        )}
 
-          {/* 日志内容 */}
-          {activeSidebar === "log" && (
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5" />
-                        操作日志
-                      </CardTitle>
-                      <CardDescription>查看所有操作记录 ({operationLog.length} 条)</CardDescription>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={clearLog}
-                      disabled={operationLog.length === 0}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      清空
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[calc(100vh-280px)] p-2 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden">
-                    <div className="space-y-1 font-mono text-xs">
-                      {operationLog.length === 0 ? (
-                        <div className="text-muted-foreground text-center py-8">
-                          暂无操作记录
-                        </div>
-                      ) : (
-                        operationLog.map((log, idx) => (
-                          <div key={idx} className="whitespace-pre-wrap p-2 hover:bg-muted/50 rounded transition-colors">
-                            {log}
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </main>
+        {/* 日志内容 */}
+        {activeSidebar === "log" && (
+          <LogPanel
+            operationLog={operationLog}
+            clearLog={clearLog}
+          />
+        )}
+      </main>
 
       {/* Toast 提示 */}
       <Toaster position="top-right" richColors />

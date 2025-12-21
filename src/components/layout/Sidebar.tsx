@@ -1,0 +1,80 @@
+import { Smartphone, Eraser, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+export type SidebarType = "device" | "debloat" | "log";
+
+interface SidebarProps {
+  activeSidebar: SidebarType;
+  setActiveSidebar: (type: SidebarType) => void;
+  devicesCount: number;
+  adbVersion: string;
+  operationLogCount: number;
+}
+
+export function Sidebar({
+  activeSidebar,
+  setActiveSidebar,
+  devicesCount,
+  adbVersion,
+  operationLogCount,
+}: SidebarProps) {
+  return (
+    <aside className="w-64 border-r bg-card/50 overflow-y-auto flex-shrink-0 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden h-screen sticky top-0">
+      <div className="p-4 space-y-4">
+        {/* Logo 区域 */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-lg flex items-center justify-center">
+              <Smartphone className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              Sinodroid Pure
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <Badge variant="secondary" className="flex-1 justify-center">
+              已连接: {devicesCount}
+            </Badge>
+            <Badge variant="outline" className="flex-1 justify-center text-[10px]">
+              {adbVersion.split("\n")[0]}
+            </Badge>
+          </div>
+        </div>
+
+        {/* 导航菜单 */}
+        <nav className="space-y-2">
+          <Button
+            variant={activeSidebar === "device" ? "default" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => setActiveSidebar("device")}
+          >
+            <Smartphone className="w-4 h-4 mr-2" />
+            设备管理
+          </Button>
+          <Button
+            variant={activeSidebar === "debloat" ? "default" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => setActiveSidebar("debloat")}
+          >
+            <Eraser className="w-4 h-4 mr-2" />
+            去广告
+          </Button>
+          <Button
+            variant={activeSidebar === "log" ? "default" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => setActiveSidebar("log")}
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            操作日志
+            {operationLogCount > 0 && (
+              <span className="ml-auto text-xs bg-primary text-primary-foreground px-1.5 rounded-full">
+                {operationLogCount}
+              </span>
+            )}
+          </Button>
+        </nav>
+      </div>
+    </aside>
+  );
+}
