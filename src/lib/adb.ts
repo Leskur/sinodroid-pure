@@ -1,11 +1,17 @@
 import { invoke } from "@tauri-apps/api/core";
 
 /**
+ * 设备连接类型
+ */
+export type DeviceConnectionType = "usb" | "wifi";
+
+/**
  * 设备信息接口
  */
 export interface Device {
   id: string;
   status: string;
+  connectionType: DeviceConnectionType;
 }
 
 /**

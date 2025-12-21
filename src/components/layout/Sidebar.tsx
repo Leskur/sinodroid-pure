@@ -1,6 +1,5 @@
 import { Smartphone, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 export type SidebarType = "device" | "debloat" | "log";
 
@@ -8,12 +7,14 @@ interface SidebarProps {
   activeSidebar: SidebarType;
   setActiveSidebar: (type: SidebarType) => void;
   operationLogCount: number;
+  disabled?: boolean;
 }
 
 export function Sidebar({
   activeSidebar,
   setActiveSidebar,
   operationLogCount,
+  disabled = false,
 }: SidebarProps) {
   return (
     <aside className="w-64 border-r bg-card/50 overflow-y-auto flex-shrink-0 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden h-screen sticky top-0">
@@ -33,7 +34,8 @@ export function Sidebar({
           <Button
             variant={activeSidebar === "device" ? "default" : "ghost"}
             className="w-full justify-start"
-            onClick={() => setActiveSidebar("device")}
+            onClick={() => !disabled && setActiveSidebar("device")}
+            disabled={disabled}
           >
             <Smartphone className="w-4 h-4 mr-2" />
             设备管理
@@ -41,7 +43,8 @@ export function Sidebar({
           <Button
             variant={activeSidebar === "debloat" ? "default" : "ghost"}
             className="w-full justify-start"
-            onClick={() => setActiveSidebar("debloat")}
+            onClick={() => !disabled && setActiveSidebar("debloat")}
+            disabled={disabled}
           >
             <Trash2 className="w-4 h-4 mr-2" />
             卸载预装
@@ -50,6 +53,7 @@ export function Sidebar({
             variant={activeSidebar === "log" ? "default" : "ghost"}
             className="w-full justify-start"
             onClick={() => setActiveSidebar("log")}
+            disabled={false}
           >
             <FileText className="w-4 h-4 mr-2" />
             系统记录

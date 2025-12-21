@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Trash2, Play, Loader2, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import AppIcon from "@/components/AppIcon";
 import type { DeviceInfo } from "@/components/device/DeviceInfoCard";
 
@@ -18,7 +17,6 @@ interface DebloatCardProps {
   selectedDevice: string;
   operating: boolean;
   bloatwarePackages: BloatwarePackage[];
-  operationLog: string[];
   addLog: (message: string) => void;
   setOperating: (value: boolean) => void;
   executeAdbCommand: (args: string[]) => Promise<string>;
@@ -29,7 +27,6 @@ export function DebloatCard({
   selectedDevice,
   operating,
   bloatwarePackages,
-  operationLog,
   addLog,
   setOperating,
   executeAdbCommand,

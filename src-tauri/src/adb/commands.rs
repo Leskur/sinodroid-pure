@@ -6,11 +6,21 @@ use tokio::task::spawn_blocking;
 
 use super::{get_adb_path, installer, is_platform_tools_installed};
 
+/// 设备连接类型
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DeviceConnectionType {
+    Usb,
+    Wifi,
+}
+
 /// 设备信息
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Device {
     pub id: String,
     pub status: String,
+    #[serde(rename = "connectionType")]
+    pub connection_type: DeviceConnectionType,
 }
 
 /// 初始化 platform-tools
@@ -84,6 +94,13 @@ pub async fn get_devices(app: AppHandle) -> Result<Vec<Device>, String> {
 
         let output_str = String::from_utf8_lossy(&output.stdout);
         let devices = parse_devices(&output_str);
+
+        // Debug: Log the final devices array
+        eprintln!("[DEBUG] Returning {} devices to frontend", devices.len());
+        for device in &devices {
+            eprintln!("[DEBUG] Device JSON: {:?}", serde_json::to_string(device));
+        }
+
         Ok(devices)
     })
     .await
@@ -170,9 +187,25 @@ fn parse_devices(output: &str) -> Vec<Device> {
 
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.len() >= 2 {
+            let device_id = parts[0].to_string();
+            let status = parts[1].to_string();
+
+            // 判断连接类型：
+            // WiFi: 包含冒号（如 192.168.1.100:5555）或以 ._adb-tls-connect._tcp 结尾
+            // USB: 其他情况（设备序列号等）
+            let connection_type = if device_id.contains(':') || device_id.ends_with("._adb-tls-connect._tcp") {
+                DeviceConnectionType::Wifi
+            } else {
+                DeviceConnectionType::Usb
+            };
+
+            eprintln!("[DEBUG] Parsed device: id={}, status={}, connection_type={:?}",
+                      device_id, status, connection_type);
+
             devices.push(Device {
-                id: parts[0].to_string(),
-                status: parts[1].to_string(),
+                id: device_id,
+                status,
+                connection_type,
             });
         }
     }

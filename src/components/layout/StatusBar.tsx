@@ -1,11 +1,12 @@
-import { Terminal, Smartphone } from "lucide-react";
+import { Terminal, Smartphone, Loader2 } from "lucide-react";
 
 interface StatusBarProps {
   adbVersion: string;
   devicesCount: number;
+  preheating?: boolean;
 }
 
-export function StatusBar({ adbVersion, devicesCount }: StatusBarProps) {
+export function StatusBar({ adbVersion, devicesCount, preheating = false }: StatusBarProps) {
   // 提取 ADB 版本号（去掉换行和多余信息）
   const version = adbVersion.split("\n")[0].replace("Android Debug Bridge version ", "");
 
@@ -19,6 +20,12 @@ export function StatusBar({ adbVersion, devicesCount }: StatusBarProps) {
         <Smartphone className="w-3.5 h-3.5" />
         <span>已连接: {devicesCount}</span>
       </div>
+      {preheating && (
+        <div className="flex items-center gap-2 text-blue-400">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          <span>正在预热...</span>
+        </div>
+      )}
       <div className="ml-auto opacity-60">
         Sinodroid Pure v1.0
       </div>
