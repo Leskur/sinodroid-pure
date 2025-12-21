@@ -52,7 +52,7 @@ export function Sidebar({
             onClick={() => setActiveSidebar("log")}
           >
             <FileText className="w-4 h-4 mr-2" />
-            日志
+            系统记录
             {operationLogCount > 0 && (
               <span className="ml-auto text-xs bg-primary text-primary-foreground px-1.5 rounded-full">
                 {operationLogCount}

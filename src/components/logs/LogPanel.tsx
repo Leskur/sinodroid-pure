@@ -56,7 +56,7 @@ export function LogPanel({ operationLog, clearLog }: LogPanelProps) {
         <CardHeader className="flex flex-row items-center justify-between py-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            日志
+            系统记录
           </CardTitle>
           <div className="flex items-center gap-2">
             {operationLog.length > 0 && (
