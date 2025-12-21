@@ -7,6 +7,7 @@ export interface DeviceInfo {
   // 基础信息
   model: string;
   manufacturer: string;
+  brand: string;            // 品牌 - 用于过滤广告包
   androidVersion: string;
   sdkVersion: string;
   serialNumber: string;

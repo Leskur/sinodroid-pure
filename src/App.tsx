@@ -18,16 +18,21 @@ import { WiFiConnectCard } from "@/components/device/WiFiConnectCard";
 import { DebloatCard, type BloatwarePackage } from "@/components/debloat/DebloatCard";
 import { LogPanel } from "@/components/logs/LogPanel";
 
-// 为中国安卓设备优化的预设命令
+// 为中国安卓设备优化的预设命令（按品牌分类）
 const BLOATWARE_PACKAGES: BloatwarePackage[] = [
-  { name: "小米广告服务", package: "com.miui.systemAdSolution", desc: "小米系统广告服务" },
-  { name: "华为彩信广告", package: "com.huawei.android.hwouc", desc: "华为系统更新广告" },
-  { name: "OPPO 推送服务", package: "com.oppo.pushservice", desc: "OPPO 推送广告" },
-  { name: "VIVO 推送服务", package: "com.vivo.push", desc: "VIVO 推送广告" },
-  { name: "小米系统广告", package: "com.miui.systemAdService", desc: "小米系统广告" },
-  { name: "华为智能推荐", package: "com.huawei.android.hwSmartAds", desc: "华为智能广告" },
-  { name: "OPPO 桌面广告", package: "com.oppo.launcher.res", desc: "OPPO 桌面广告" },
-  { name: "VIVO 桌面广告", package: "com.bbk.launcher2", desc: "VIVO 桌面广告" },
+  // 小米/Redmi
+  { name: "小米广告服务", package: "com.miui.systemAdSolution", desc: "小米系统广告服务", brand: "Xiaomi" },
+  { name: "小米系统广告", package: "com.miui.systemAdService", desc: "小米系统广告", brand: "Xiaomi" },
+  { name: "小米应用推荐", package: "com.miui.personalassistant", desc: "小米智能推荐", brand: "Xiaomi" },
+  // 华为
+  { name: "华为彩信广告", package: "com.huawei.android.hwouc", desc: "华为系统更新广告", brand: "Huawei" },
+  { name: "华为智能推荐", package: "com.huawei.android.hwSmartAds", desc: "华为智能广告", brand: "Huawei" },
+  // OPPO
+  { name: "OPPO 推送服务", package: "com.oppo.pushservice", desc: "OPPO 推送广告", brand: "OPPO" },
+  { name: "OPPO 桌面广告", package: "com.oppo.launcher.res", desc: "OPPO 桌面广告", brand: "OPPO" },
+  // VIVO
+  { name: "VIVO 推送服务", package: "com.vivo.push", desc: "VIVO 推送广告", brand: "VIVO" },
+  { name: "VIVO 桌面广告", package: "com.bbk.launcher2", desc: "VIVO 桌面广告", brand: "VIVO" },
 ];
 
 function App() {
@@ -41,9 +46,26 @@ function App() {
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
 
-  // 去广告/操作日志
+  // 操作记录
   const [operationLog, setOperationLog] = useState<string[]>([]);
   const [operating, setOperating] = useState(false);
+
+  // 生成时间戳 (YYYY-MM-DD HH:mm:ss)
+  const getTimestamp = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+
+  // 添加日志记录（自动添加时间戳）
+  const addLog = (message: string) => {
+    setOperationLog(prev => [...prev, `[${getTimestamp()}] ${message}`]);
+  };
 
   // 初始化 platform-tools
   useEffect(() => {
@@ -96,10 +118,10 @@ function App() {
       }
 
       // 记录日志
-      setOperationLog(prev => [...prev, `✅ 已断开设备: ${deviceId}`]);
+      addLog(`✅ 已断开设备: ${deviceId}`);
     } catch (err) {
       toast.error("断开设备失败", { description: String(err) });
-      setOperationLog(prev => [...prev, `❌ 断开设备失败 ${deviceId}: ${String(err)}`]);
+      addLog(`❌ 断开设备失败 ${deviceId}: ${String(err)}`);
     }
   };
 
@@ -163,32 +185,32 @@ function App() {
     };
   }, [ready, selectedDevice, autoDetect]);
 
-  // 批量去广告
+  // 批量系统精简
   const batchDebloat = async () => {
     if (!selectedDevice) {
       toast.error("请先选择设备");
       return;
     }
     setOperating(true);
-    toast.info("开始批量去广告", { description: "正在处理..." });
+    toast.info("开始批量系统精简", { description: "正在处理..." });
     try {
       for (const item of BLOATWARE_PACKAGES) {
-        setOperationLog(prev => [...prev, `正在检查: ${item.name} (${item.package})`]);
+        addLog(`正在检查: ${item.name} (${item.package})`);
         try {
           // 先检查是否安装
           const checkOutput = await executeAdbCommand([ "-s", selectedDevice, "shell", "pm", "path", item.package ]);
           if (checkOutput.includes(item.package)) {
             await executeAdbCommand([ "-s", selectedDevice, "shell", "pm", "uninstall", "--user", "0", item.package ]);
-            setOperationLog(prev => [...prev, `✅ 已卸载: ${item.name}`]);
+            addLog(`✅ 已卸载: ${item.name}`);
           } else {
-            setOperationLog(prev => [...prev, `ℹ️ 未安装: ${item.name}`]);
+            addLog(`ℹ️ 未安装: ${item.name}`);
           }
         } catch (err) {
-          setOperationLog(prev => [...prev, `⚠️ 跳过 ${item.name}: ${String(err)}`]);
+          addLog(`⚠️ 跳过 ${item.name}: ${String(err)}`);
         }
       }
-      setOperationLog(prev => [...prev, `🎉 批量去广告完成！`]);
-      toast.success("批量去广告完成");
+      addLog(`🎉 批量系统精简完成！`);
+      toast.success("批量系统精简完成");
     } finally {
       setOperating(false);
     }
@@ -212,6 +234,8 @@ function App() {
       const model = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.product.model" ]);
       // 获取制造商
       const manufacturer = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.product.manufacturer" ]);
+      // 获取品牌（用于过滤广告包）
+      const brand = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.product.brand" ]);
       // 获取 Android 版本
       const androidVersion = await executeAdbCommand([ "-s", deviceId, "shell", "getprop", "ro.build.version.release" ]);
       // 获取 SDK 版本
@@ -418,6 +442,7 @@ function App() {
       setDeviceInfo({
         model: model.trim(),
         manufacturer: manufacturer.trim(),
+        brand: brand.trim(),
         androidVersion: androidVersion.trim(),
         sdkVersion: sdkVersion.trim(),
         serialNumber: serialNumber.trim(),
@@ -465,8 +490,8 @@ function App() {
   // 菜单名称映射
   const menuNames: Record<SidebarType, string> = {
     device: "设备管理",
-    debloat: "批量去广告",
-    log: "操作日志"
+    debloat: "卸载预装应用",
+    log: "操作记录"
   };
 
   return (
@@ -522,16 +547,17 @@ function App() {
               </div>
             )}
 
-            {/* 去广告内容 */}
+            {/* 系统精简内容 */}
             {activeSidebar === "debloat" && (
               <DebloatCard
                 selectedDevice={selectedDevice}
                 operating={operating}
                 bloatwarePackages={BLOATWARE_PACKAGES}
                 operationLog={operationLog}
-                setOperationLog={setOperationLog}
+                addLog={addLog}
                 setOperating={setOperating}
                 executeAdbCommand={executeAdbCommand}
+                deviceInfo={deviceInfo}
               />
             )}
 
