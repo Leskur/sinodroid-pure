@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { History, Trash2, Search } from "lucide-react";
+import { FileText, Trash2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -55,7 +55,7 @@ export function LogPanel({ operationLog, clearLog }: LogPanelProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between py-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <History className="w-5 h-5" />
+            <FileText className="w-5 h-5" />
             系统记录
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -95,7 +95,7 @@ export function LogPanel({ operationLog, clearLog }: LogPanelProps) {
           >
             {filteredLogs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                <History className="w-10 h-10 mb-2 opacity-30" />
+                <FileText className="w-10 h-10 mb-2 opacity-30" />
                 <div className="text-sm">
                   {operationLog.length === 0 ? "暂无记录" : "没有匹配的记录"}
                 </div>
