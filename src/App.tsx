@@ -33,7 +33,7 @@ function App() {
   const [initializing, setInitializing] = useState(true);
   const [ready, setReady] = useState(false);
   const [preheating, setPreheating] = useState(true); // ADB 预热状态
-  const [adbVersion, setAdbVersion] = useState("");
+
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string>("");
   const [activeSidebar, setActiveSidebar] = useState<SidebarType>("device");
@@ -76,7 +76,7 @@ function App() {
         }
 
         const version = await getAdbVersion();
-        setAdbVersion(version);
+
         setReady(true);
         toast.success("ADB 工具初始化成功", {
           description: version.split("\n")[0],
@@ -265,16 +265,7 @@ function App() {
     setLoadingInfo(true);
     setDeviceInfo(null);
 
-    // 记录每个步骤的时间
-    const logStep = (step: string, stepStart: number) => {
-      const duration = performance.now() - stepStart;
-      addLog(`  ⏱️  ${step}: ${duration.toFixed(0)}ms`);
-      return performance.now();
-    };
-
     try {
-      let stepStart = performance.now();
-
       // 获取设备型号
       const model = await executeAdbCommand([
         "-s",
@@ -283,7 +274,6 @@ function App() {
         "getprop",
         "ro.product.model",
       ]);
-      stepStart = logStep("获取设备型号", stepStart);
 
       // 获取制造商
       const manufacturer = await executeAdbCommand([
@@ -293,7 +283,6 @@ function App() {
         "getprop",
         "ro.product.manufacturer",
       ]);
-      stepStart = logStep("获取制造商", stepStart);
 
       // 获取品牌（用于过滤广告包）
       const brand = await executeAdbCommand([
@@ -303,7 +292,6 @@ function App() {
         "getprop",
         "ro.product.brand",
       ]);
-      stepStart = logStep("获取品牌", stepStart);
 
       // 获取 Android 版本
       const androidVersion = await executeAdbCommand([
@@ -313,7 +301,6 @@ function App() {
         "getprop",
         "ro.build.version.release",
       ]);
-      stepStart = logStep("获取Android版本", stepStart);
 
       // 获取 SDK 版本
       const sdkVersion = await executeAdbCommand([
@@ -323,7 +310,6 @@ function App() {
         "getprop",
         "ro.build.version.sdk",
       ]);
-      stepStart = logStep("获取SDK版本", stepStart);
 
       // 获取序列号
       const serialNumber = await executeAdbCommand([
@@ -333,7 +319,6 @@ function App() {
         "getprop",
         "ro.serialno",
       ]);
-      stepStart = logStep("获取序列号", stepStart);
 
       // 获取安全补丁级别
       const securityPatch = await executeAdbCommand([
@@ -343,7 +328,6 @@ function App() {
         "getprop",
         "ro.build.version.security_patch",
       ]).catch(() => "N/A");
-      stepStart = logStep("获取安全补丁", stepStart);
 
       // 获取构建版本号
       const buildNumber = await executeAdbCommand([
@@ -353,7 +337,6 @@ function App() {
         "getprop",
         "ro.build.version.incremental",
       ]).catch(() => "N/A");
-      stepStart = logStep("获取构建版本", stepStart);
 
       // 获取主板型号
       const board = await executeAdbCommand([
@@ -363,7 +346,6 @@ function App() {
         "getprop",
         "ro.product.board",
       ]).catch(() => "N/A");
-      stepStart = logStep("获取主板型号", stepStart);
 
       // 获取内核版本
       const kernelVersion = await executeAdbCommand([
@@ -373,12 +355,10 @@ function App() {
         "uname",
         "-r",
       ]).catch(() => "N/A");
-      stepStart = logStep("获取内核版本", stepStart);
 
       // 获取存储信息
       let storage = "N/A";
       try {
-        const storageStart = performance.now();
         const storageOutput = await executeAdbCommand([
           "-s",
           deviceId,
@@ -399,8 +379,6 @@ function App() {
 
           storage = `总: ${totalGb} GB, 已用: ${usedGb} GB, 可用: ${availGb} GB`;
         }
-        logStep("获取存储信息", storageStart);
-        stepStart = performance.now();
       } catch (e) {
         addLog(`  ⚠️  获取存储信息失败: ${String(e)}`);
       }
@@ -408,7 +386,6 @@ function App() {
       // 获取内存信息
       let ram = "N/A";
       try {
-        const ramStart = performance.now();
         // 方法1: 从 /proc/meminfo 获取
         const memOutput = await executeAdbCommand([
           "-s",
@@ -439,8 +416,6 @@ function App() {
             ram = "未知";
           }
         }
-        logStep("获取内存信息", ramStart);
-        stepStart = performance.now();
       } catch (e) {
         addLog(`  ⚠️  获取内存信息失败: ${String(e)}`);
       }
@@ -448,7 +423,6 @@ function App() {
       // 获取 CPU 信息
       let cpu = "N/A";
       try {
-        const cpuStart = performance.now();
         // 方法1: 从 /proc/cpuinfo 获取
         const cpuOutput = await executeAdbCommand([
           "-s",
@@ -487,8 +461,6 @@ function App() {
             cpu = `${coreCount} 核处理器`;
           }
         }
-        logStep("获取CPU信息", cpuStart);
-        stepStart = performance.now();
       } catch (e) {
         addLog(`  ⚠️  获取CPU信息失败: ${String(e)}`);
       }
@@ -496,7 +468,6 @@ function App() {
       // 获取分辨率
       let resolution = "N/A";
       try {
-        const resolutionStart = performance.now();
         const resolutionOutput = await executeAdbCommand([
           "-s",
           deviceId,
@@ -508,8 +479,6 @@ function App() {
         if (match) {
           resolution = match[1];
         }
-        logStep("获取分辨率", resolutionStart);
-        stepStart = performance.now();
       } catch (e) {
         addLog(`  ⚠️  获取分辨率失败: ${String(e)}`);
       }
@@ -565,14 +534,6 @@ function App() {
   if (!ready) {
     return <ErrorScreen />;
   }
-
-  // 菜单名称映射
-  const menuNames: Record<SidebarType, string> = {
-    device: "设备管理",
-    debloat: "内置应用",
-    log: "系统记录",
-    about: "关于软件",
-  };
 
   // 预热中状态 - 显示覆盖层
   const isPreheatingOverlay = preheating && activeSidebar !== "log";
@@ -703,9 +664,19 @@ function App() {
 
           {/* 底部状态栏 - 跟随右侧内容区域 */}
           <StatusBar
-            adbVersion={adbVersion}
-            devicesCount={devices.length}
-            preheating={preheating}
+            connectedCount={devices.length}
+            selectedDevice={selectedDevice}
+            deviceName={
+              deviceInfo ? `${deviceInfo.brand} ${deviceInfo.model}` : undefined
+            }
+            loading={preheating || operating}
+            loadingText={
+              preheating
+                ? "正在读取应用列表..."
+                : operating
+                ? "正在执行操作..."
+                : undefined
+            }
           />
         </div>
       </div>

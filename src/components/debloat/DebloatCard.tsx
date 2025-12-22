@@ -7,9 +7,6 @@ import {
   Search,
   ArrowUpDown,
   Sparkles,
-  CheckCircle2,
-  XCircle,
-  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -125,9 +122,6 @@ export function DebloatCard({
   const allSelected =
     filteredPackages.length > 0 &&
     filteredPackages.every((p) => selectedPackages.has(p.package));
-  const someSelected = filteredPackages.some((p) =>
-    selectedPackages.has(p.package)
-  );
 
   // 扫描设备上的小米/MIUI应用
   useEffect(() => {
@@ -252,8 +246,8 @@ export function DebloatCard({
 
     // 弹出确认框
     setConfirmMessage({
-      title: "⚠ 危险操作警告",
-      description: `您即将批量禁用 ${packagesToProcess.length} 个应用。禁用关键系统组件可能导致设备黑屏、无限重启或无法开机。\n\n请确保您知道自己在做什么。是否继续？`,
+      title: "确认禁用应用",
+      description: `您即将禁用 ${packagesToProcess.length} 个应用。\n\n这些应用将被冻结并隐藏，但不会被彻底删除。如果遇到任何系统异常，您随时可以在列表中重新启用它们。\n\n是否继续执行？`,
     });
     setConfirmAction(() => async () => {
       setOperating(true);
@@ -383,111 +377,6 @@ export function DebloatCard({
         toast.success("批量启用完成");
       }
       setSelectedPackages(new Set());
-    } finally {
-      setOperating(false);
-    }
-  };
-
-  const handleAppAction = async (item: ScannedApp, isInstalled: boolean) => {
-    if (!selectedDevice) return;
-    setOperating(true);
-    try {
-      if (isInstalled) {
-        // 先尝试禁用
-        try {
-          await executeAdbCommand([
-            "-s",
-            selectedDevice,
-            "shell",
-            "pm",
-            "disable-user",
-            "--user",
-            "0",
-            item.package,
-          ]);
-          addLog(`✅ 已禁用: ${item.name}`);
-          toast.success("禁用成功", { description: item.name });
-          setInstalledMap((prev) => ({ ...prev, [item.package]: false }));
-        } catch (disableErr) {
-          const errMsg = String(disableErr);
-          // 如果是受保护的系统包，尝试卸载用户版本
-          if (errMsg.includes("Cannot disable system packages")) {
-            addLog(`ℹ️ ${item.name} 是受保护的系统包，尝试卸载用户版本...`);
-            await executeAdbCommand([
-              "-s",
-              selectedDevice,
-              "shell",
-              "pm",
-              "uninstall",
-              "--user",
-              "0",
-              item.package,
-            ]);
-            addLog(`✅ 已卸载用户版本: ${item.name}`);
-            toast.success("已卸载用户版本", { description: item.name });
-            setInstalledMap((prev) => ({ ...prev, [item.package]: false }));
-          } else {
-            throw disableErr;
-          }
-        }
-      } else {
-        // 启用/恢复应用 - 总是使用 install-existing，因为它更可靠且涵盖了 enable 的功能
-        try {
-          await executeAdbCommand([
-            "-s",
-            selectedDevice,
-            "shell",
-            "pm",
-            "install-existing",
-            "--user",
-            "0",
-            item.package,
-          ]);
-          addLog(`✅ 已恢复/启用: ${item.name}`);
-          toast.success("已恢复/启用", { description: item.name });
-          setInstalledMap((prev) => ({ ...prev, [item.package]: true }));
-        } catch (err) {
-          // 如果 install-existing 失败（极其罕见），尝试 enable 作为最后的手段
-          try {
-            await executeAdbCommand([
-              "-s",
-              selectedDevice,
-              "shell",
-              "pm",
-              "enable",
-              item.package,
-            ]);
-            addLog(`✅ 已启用: ${item.name}`);
-            toast.success("启用成功", { description: item.name });
-            setInstalledMap((prev) => ({ ...prev, [item.package]: true }));
-          } catch (enableErr) {
-            const errMsg = String(err);
-            addLog(`❌ 恢复失败: ${item.name} - ${errMsg}`);
-            toast.error("恢复失败", {
-              description: `${item.name} 可能需要恢复出厂设置或刷机`,
-            });
-          }
-        }
-      }
-    } catch (err) {
-      const errorMsg = String(err);
-      const action = isInstalled ? "禁用" : "启用";
-      if (errorMsg.includes("Unknown package")) {
-        addLog(`⚠️ ${item.name}: 设备上不存在此应用`);
-        toast.error("应用不存在", {
-          description: `${item.name} 在此设备上未安装`,
-        });
-      } else if (errorMsg.includes("Cannot disable system packages")) {
-        addLog(`⚠️ ${item.name}: 此应用无法被禁用或卸载`);
-        toast.error("无法操作", {
-          description: `${item.name} 是核心系统应用`,
-        });
-      } else {
-        addLog(`❌ ${action}失败 ${item.name}: ${errorMsg}`);
-        toast.error(`${action}失败`, {
-          description: `${item.name}`,
-        });
-      }
     } finally {
       setOperating(false);
     }
@@ -641,61 +530,68 @@ export function DebloatCard({
                   key={item.package}
                   onClick={() => handleSelect(item.package, !isSelected)}
                   className={`
-                      group relative flex flex-col gap-2 p-3 rounded-md border cursor-pointer transition-all duration-200
+                      group relative flex items-center gap-4 p-3 rounded-xl border cursor-pointer transition-all duration-300
                       ${
                         isSelected
-                          ? "bg-primary/5 border-primary/40 shadow-sm ring-1 ring-primary/10"
-                          : "bg-card border-border/50 hover:bg-accent/40 hover:border-accent"
+                          ? "bg-primary/5 border-primary shadow-[0_0_0_1px_hsl(var(--primary))]"
+                          : "bg-card border-border/40 hover:border-primary/30 hover:shadow-sm"
                       }
-                      ${!isInstalled ? "opacity-70 grayscale-[0.3]" : ""}
-                    `}
+                  `}
                 >
-                  {/* 选中勾选框 (绝对定位) */}
-                  <div className="absolute top-3 right-3 z-10">
-                    <Checkbox
-                      checked={isSelected}
-                      // 点击事件已经在父级处理，这里只需要显示状态
-                      className={`transition-opacity duration-200 pointer-events-none ${
-                        isSelected
-                          ? "opacity-100"
-                          : "opacity-0 group-hover:opacity-100"
+                  {/* 图标容器 + 选中状态角标 */}
+                  <div className="relative shrink-0">
+                    <div
+                      className={`rounded-lg overflow-hidden transition-all duration-300 w-11 h-11 shadow-sm ${
+                        !isInstalled
+                          ? "grayscale contrast-75 opacity-60 bg-muted"
+                          : "bg-background"
                       }`}
-                    />
-                  </div>
-
-                  <div className="flex items-start gap-3 pr-6">
-                    <div className="shrink-0 rounded-md overflow-hidden w-10 h-10">
-                      <AppIcon package={item.package} size={40} />
+                    >
+                      <AppIcon package={item.package} size={44} />
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium truncate leading-tight mb-0.5">
-                        {item.name}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-mono truncate opacity-70">
-                        {item.package}
-                      </span>
-                      {item.desc && (
-                        <span className="text-[10px] text-muted-foreground truncate mt-1">
-                          {item.desc}
-                        </span>
-                      )}
+
+                    {/* 选中时的角标 (Futuristic Badge) */}
+                    <div
+                      className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md ring-2 ring-background transition-all duration-300 z-10 ${
+                        isSelected
+                          ? "scale-100 opacity-100"
+                          : "scale-0 opacity-0"
+                      }`}
+                    >
+                      <Check className="w-3 h-3" strokeWidth={4} />
                     </div>
                   </div>
 
-                  {/* 状态标签 */}
-                  <div className="flex items-center gap-2 mt-auto pt-1">
-                    {!isInstalled ? (
-                      <div className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
-                        <Ban className="w-3 h-3 mr-1" />
-                        已禁用
-                      </div>
-                    ) : (
-                      <div className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                        <Check className="w-3 h-3 mr-1" />
-                        已启用
-                      </div>
+                  {/* 信息列 */}
+                  <div
+                    className={`flex flex-col min-w-0 flex-1 transition-opacity duration-300 ${
+                      !isInstalled ? "opacity-60" : ""
+                    }`}
+                  >
+                    {/* 标题 */}
+                    <span className="text-sm font-semibold text-foreground truncate leading-tight">
+                      {item.name}
+                    </span>
+
+                    {/* 包名 */}
+                    <span className="text-[10px] text-muted-foreground/60 font-mono truncate mt-0.5">
+                      {item.package}
+                    </span>
+
+                    {/* 描述 */}
+                    {item.desc && (
+                      <p className="text-[10px] text-muted-foreground/50 line-clamp-1 mt-0.5">
+                        {item.desc}
+                      </p>
                     )}
                   </div>
+
+                  {/* 已禁用状态指示 (右侧背景水印) */}
+                  {!isInstalled && (
+                    <div className="absolute right-3 opacity-[0.08] pointer-events-none grayscale">
+                      <Ban className="w-10 h-10" />
+                    </div>
+                  )}
                 </div>
               );
             })}

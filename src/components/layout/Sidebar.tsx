@@ -62,7 +62,7 @@ export function Sidebar({
       <div className="p-4">
         <Button
           variant={activeSidebar === "about" ? "secondary" : "ghost"}
-          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          className="w-full justify-start text-muted-foreground/60 hover:text-foreground transition-all"
           onClick={() => setActiveSidebar("about")}
         >
           <Info className="w-4 h-4 mr-2" />

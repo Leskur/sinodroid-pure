@@ -32,14 +32,14 @@ export function ConfirmationDialog({
 }: ConfirmationDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="sm:max-w-[425px]">
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription className="text-muted-foreground">
+          <AlertDialogTitle className="text-left">{title}</AlertDialogTitle>
+          <AlertDialogDescription className="text-left text-muted-foreground whitespace-pre-wrap leading-relaxed pt-2">
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="pt-4">
           <AlertDialogCancel onClick={() => onOpenChange(false)}>
             {cancelText}
           </AlertDialogCancel>
@@ -51,7 +51,7 @@ export function ConfirmationDialog({
             }}
             className={
               variant === "destructive"
-                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                ? "bg-red-500 hover:bg-red-600 text-white shadow-sm border-0"
                 : ""
             }
           >
