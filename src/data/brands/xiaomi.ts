@@ -2,170 +2,131 @@ import { type BloatwarePackage } from "./types";
 
 /**
  * 小米/Redmi 预装应用列表
- * 以下应用经过验证可以安全移除，不会影响系统正常使用
+ * 参考来源：https://miuiver.com/wp-content/uploads/miui-pre-installed-software.html
+ * 以下应用经过验证可以安全禁用，不会影响系统正常使用
  */
 export const XIAOMI_PACKAGES: BloatwarePackage[] = [
-  // ==================== 广告与追踪服务 ====================
+  // ==================== 广告与数据追踪 ====================
   {
-    name: "小米广告服务",
+    name: "智能服务",
     package: "com.miui.systemAdSolution",
-    desc: "系统广告推送服务（智能服务）",
+    desc: "系统广告核心服务",
     brand: "Xiaomi",
   },
   {
-    name: "系统广告服务",
-    package: "com.miui.systemAdService",
-    desc: "系统广告投放组件",
-    brand: "Xiaomi",
-  },
-  {
-    name: "MSA广告",
-    package: "com.miui.msa.global",
-    desc: "小米广告SDK服务",
-    brand: "Xiaomi",
-  },
-  {
-    name: "数据分析",
+    name: "Analytics",
     package: "com.miui.analytics",
-    desc: "MIUI数据分析收集",
+    desc: "MIUI数据采集分析",
     brand: "Xiaomi",
   },
   {
-    name: "后台追踪",
-    package: "com.xiaomi.joyose",
-    desc: "用户行为追踪服务",
-    brand: "Xiaomi",
-  },
-  {
-    name: "系统追踪",
+    name: "MiuiDaemon",
     package: "com.miui.daemon",
-    desc: "后台数据收集守护进程",
+    desc: "后台数据采集服务",
     brand: "Xiaomi",
   },
   {
-    name: "Bug报告",
+    name: "Joyose",
+    package: "com.xiaomi.joyose",
+    desc: "温控限制/用户行为追踪",
+    brand: "Xiaomi",
+  },
+  {
+    name: "CatchLog",
+    package: "com.bsp.catchlog",
+    desc: "日志采集服务",
+    brand: "Xiaomi",
+  },
+  {
+    name: "用户反馈",
     package: "com.miui.bugreport",
-    desc: "系统Bug上报工具",
+    desc: "Bug上报工具",
     brand: "Xiaomi",
   },
   {
-    name: "内容捕获",
-    package: "com.miui.contentcatcher",
-    desc: "内容分析服务",
-    brand: "Xiaomi",
-  },
-
-  // ==================== 可替代的工具应用 ====================
-  {
-    name: "小米浏览器",
-    package: "com.android.browser",
-    desc: "内置浏览器，可用Chrome等替代",
-    brand: "Xiaomi",
-  },
-  {
-    name: "小米音乐",
-    package: "com.miui.player",
-    desc: "内置音乐播放器",
-    brand: "Xiaomi",
-  },
-  {
-    name: "小米视频",
-    package: "com.miui.video",
-    desc: "内置视频播放器",
-    brand: "Xiaomi",
-  },
-  {
-    name: "天气",
-    package: "com.miui.weather2",
-    desc: "系统天气应用（含广告）",
-    brand: "Xiaomi",
-  },
-  {
-    name: "便签",
-    package: "com.miui.notes",
-    desc: "系统便签应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "录音机",
-    package: "com.miui.recorder",
-    desc: "系统录音应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "指南针",
-    package: "com.miui.compass",
-    desc: "系统指南针应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "扫一扫",
-    package: "com.miui.scanner",
-    desc: "系统扫描应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "屏幕录制",
-    package: "com.miui.screenrecorder",
-    desc: "系统屏幕录制",
+    name: "三方应用异常分析",
+    package: "com.miui.thirdappassistant",
+    desc: "第三方应用分析服务",
     brand: "Xiaomi",
   },
 
-  // ==================== 小米服务应用 ====================
+  // ==================== 小米服务/广告应用 ====================
   {
-    name: "智能推荐",
-    package: "com.miui.personalassistant",
-    desc: "负一屏智能助理（含广告）",
+    name: "小米商城",
+    package: "com.xiaomi.shop",
+    desc: "小米购物商城",
     brand: "Xiaomi",
   },
   {
-    name: "黄页",
+    name: "小米商城系统组件",
+    package: "com.xiaomi.ab",
+    desc: "商城后台组件",
+    brand: "Xiaomi",
+  },
+  {
+    name: "小米有品",
+    package: "com.xiaomi.youpin",
+    desc: "小米精品电商",
+    brand: "Xiaomi",
+  },
+  {
+    name: "小米社区",
+    package: "com.xiaomi.vipaccount",
+    desc: "小米用户社区",
+    brand: "Xiaomi",
+  },
+  {
+    name: "小米直播助手",
+    package: "com.mi.liveassistant",
+    desc: "直播辅助工具",
+    brand: "Xiaomi",
+  },
+  {
+    name: "小米画报",
+    package: "com.mfashiongallery.emag",
+    desc: "锁屏画报/壁纸广告",
+    brand: "Xiaomi",
+  },
+  {
+    name: "内容中心",
+    package: "com.miui.newhome",
+    desc: "资讯内容聚合（广告较多）",
+    brand: "Xiaomi",
+  },
+  {
+    name: "天星金融",
+    package: "com.xiaomi.jr",
+    desc: "小米金融服务（广告较多）",
+    brand: "Xiaomi",
+  },
+  {
+    name: "生活黄页",
     package: "com.miui.yellowpage",
     desc: "电话黄页服务",
     brand: "Xiaomi",
   },
   {
-    name: "画报壁纸",
-    package: "com.miui.android.fashiongallery",
-    desc: "锁屏画报/壁纸轮播（广告来源）",
+    name: "智能助理",
+    package: "com.miui.personalassistant",
+    desc: "负一屏智能推荐",
     brand: "Xiaomi",
   },
   {
-    name: "全球上网",
-    package: "com.miui.virtualsim",
-    desc: "虚拟SIM卡上网服务",
+    name: "智能出行",
+    package: "com.miui.smarttravel",
+    desc: "出行服务推荐",
     brand: "Xiaomi",
   },
   {
-    name: "小米互传",
-    package: "com.miui.mishare.connectivity",
-    desc: "文件互传服务",
+    name: "快应用服务框架",
+    package: "com.miui.hybrid",
+    desc: "快应用运行框架（广告入口）",
     brand: "Xiaomi",
   },
   {
-    name: "Mi Drop",
-    package: "com.xiaomi.midrop",
-    desc: "文件分享应用",
-    brand: "Xiaomi",
-  },
-
-  // ==================== 语音与AI服务 ====================
-  {
-    name: "小爱同学",
-    package: "com.miui.voiceassist",
-    desc: "语音助手（高耗电）",
-    brand: "Xiaomi",
-  },
-  {
-    name: "小爱服务",
-    package: "com.xiaomi.aiasst.service",
-    desc: "小爱同学后台服务",
-    brand: "Xiaomi",
-  },
-  {
-    name: "语音唤醒",
-    package: "com.miui.voicetrigger",
-    desc: "小爱语音唤醒服务",
+    name: "服务与反馈",
+    package: "com.miui.miservice",
+    desc: "用户服务反馈",
     brand: "Xiaomi",
   },
 
@@ -182,10 +143,168 @@ export const XIAOMI_PACKAGES: BloatwarePackage[] = [
     desc: "游戏SDK服务",
     brand: "Xiaomi",
   },
+
+  // ==================== 输入法（可替换） ====================
   {
-    name: "游戏服务",
-    package: "com.xiaomi.migameservice",
-    desc: "游戏加速服务",
+    name: "搜狗输入法小米版",
+    package: "com.sohu.inputmethod.sogou.xiaomi",
+    desc: "预装搜狗输入法",
+    brand: "Xiaomi",
+  },
+  {
+    name: "百度输入法小米版",
+    package: "com.baidu.input_mi",
+    desc: "预装百度输入法",
+    brand: "Xiaomi",
+  },
+  {
+    name: "讯飞输入法小米版",
+    package: "com.iflytek.inputmethod.miui",
+    desc: "预装讯飞输入法",
+    brand: "Xiaomi",
+  },
+
+  // ==================== 第三方预装应用 ====================
+  {
+    name: "今日头条",
+    package: "com.ss.android.article.news",
+    desc: "第三方新闻应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "抖音短视频",
+    package: "com.ss.android.ugc.aweme",
+    desc: "第三方短视频应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "微博",
+    package: "com.sina.weibo",
+    desc: "第三方社交应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "手机淘宝",
+    package: "com.taobao.taobao",
+    desc: "第三方购物应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "淘特",
+    package: "com.taobao.litetao",
+    desc: "第三方购物应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "拼多多",
+    package: "com.xunmeng.pinduoduo",
+    desc: "第三方购物应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "支付宝",
+    package: "com.eg.android.AlipayGphone",
+    desc: "第三方支付应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "百度",
+    package: "com.baidu.searchbox",
+    desc: "第三方搜索应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "百度地图",
+    package: "com.baidu.BaiduMap",
+    desc: "第三方地图应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "爱奇艺",
+    package: "com.qiyi.video",
+    desc: "第三方视频应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "腾讯视频",
+    package: "com.tencent.qqlive",
+    desc: "第三方视频应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "番茄免费小说",
+    package: "com.dragon.read",
+    desc: "第三方阅读应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "UC浏览器",
+    package: "com.UCMobile",
+    desc: "第三方浏览器",
+    brand: "Xiaomi",
+  },
+
+  // ==================== 可替代的系统应用 ====================
+  {
+    name: "浏览器",
+    package: "com.android.browser",
+    desc: "MIUI浏览器（可用Chrome替代）",
+    brand: "Xiaomi",
+  },
+  {
+    name: "音乐",
+    package: "com.miui.player",
+    desc: "小米音乐（广告较多）",
+    brand: "Xiaomi",
+  },
+  {
+    name: "小米视频",
+    package: "com.miui.video",
+    desc: "小米视频（广告较多）",
+    brand: "Xiaomi",
+  },
+  {
+    name: "天气",
+    package: "com.miui.weather2",
+    desc: "系统天气应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "阅读",
+    package: "com.duokan.reader",
+    desc: "多看阅读器",
+    brand: "Xiaomi",
+  },
+  {
+    name: "电子邮件",
+    package: "com.android.email",
+    desc: "系统邮件应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "小米文档查看器",
+    package: "cn.wps.moffice_eng.xiaomi.lite",
+    desc: "WPS定制文档查看器",
+    brand: "Xiaomi",
+  },
+
+  // ==================== 语音与AI服务 ====================
+  {
+    name: "小爱同学",
+    package: "com.miui.voiceassist",
+    desc: "语音助手（可禁用）",
+    brand: "Xiaomi",
+  },
+  {
+    name: "AI虚拟助手",
+    package: "com.xiaomi.aiasst.service",
+    desc: "AI助手后台服务",
+    brand: "Xiaomi",
+  },
+  {
+    name: "语音唤醒",
+    package: "com.miui.voicetrigger",
+    desc: "小爱语音唤醒服务",
     brand: "Xiaomi",
   },
 
@@ -198,7 +317,7 @@ export const XIAOMI_PACKAGES: BloatwarePackage[] = [
   },
   {
     name: "米币支付",
-    package: "com.miui.payment",
+    package: "com.xiaomi.payment",
     desc: "米币支付组件",
     brand: "Xiaomi",
   },
@@ -208,114 +327,142 @@ export const XIAOMI_PACKAGES: BloatwarePackage[] = [
     desc: "小米钱包应用",
     brand: "Xiaomi",
   },
-  {
-    name: "智能卡",
-    package: "com.miui.tsmclient",
-    desc: "门禁/公交卡服务",
-    brand: "Xiaomi",
-  },
 
   // ==================== 连接与投屏 ====================
   {
-    name: "互联服务",
-    package: "com.xiaomi.mi_connect_service",
-    desc: "小米设备互联服务",
+    name: "投屏",
+    package: "com.milink.service",
+    desc: "投屏服务",
     brand: "Xiaomi",
   },
   {
-    name: "投屏",
+    name: "投屏服务",
     package: "com.xiaomi.miplay_client",
     desc: "投屏服务客户端",
     brand: "Xiaomi",
   },
-
-  // ==================== 翻译服务 ====================
   {
-    name: "有道翻译",
-    package: "com.miui.translation.youdao",
-    desc: "有道翻译引擎",
-    brand: "Xiaomi",
-  },
-  {
-    name: "金山翻译",
-    package: "com.miui.translation.kingsoft",
-    desc: "金山翻译引擎",
-    brand: "Xiaomi",
-  },
-  {
-    name: "翻译服务",
-    package: "com.miui.translation.service",
-    desc: "系统翻译服务",
+    name: "MIUI+",
+    package: "com.xiaomi.mirror",
+    desc: "MIUI+ Beta版",
     brand: "Xiaomi",
   },
 
-  // ==================== 云服务与备份 ====================
+  // ==================== 工具类（可选禁用） ====================
   {
-    name: "小米云服务",
-    package: "com.miui.cloudservice",
-    desc: "小米云同步服务",
+    name: "万能遥控",
+    package: "com.duokan.phone.remotecontroller",
+    desc: "红外遥控器",
     brand: "Xiaomi",
   },
   {
-    name: "云备份",
-    package: "com.miui.cloudbackup",
-    desc: "云端备份服务",
+    name: "传送门",
+    package: "com.miui.contentextension",
+    desc: "内容识别传送门",
     brand: "Xiaomi",
   },
   {
-    name: "本地备份",
-    package: "com.miui.backup",
-    desc: "本地数据备份",
+    name: "健康",
+    package: "com.mi.health",
+    desc: "小米健康应用",
+    brand: "Xiaomi",
+  },
+  {
+    name: "全球上网",
+    package: "com.miui.virtualsim",
+    desc: "虚拟SIM卡上网",
+    brand: "Xiaomi",
+  },
+  {
+    name: "小米云盘",
+    package: "com.miui.newmidrive",
+    desc: "小米云盘存储",
+    brand: "Xiaomi",
+  },
+  {
+    name: "小米换机",
+    package: "com.miui.huanji",
+    desc: "数据迁移工具",
+    brand: "Xiaomi",
+  },
+  {
+    name: "扫一扫",
+    package: "com.xiaomi.scanner",
+    desc: "扫描工具",
+    brand: "Xiaomi",
+  },
+  {
+    name: "悬浮球",
+    package: "com.miui.touchassistant",
+    desc: "悬浮快捷操作",
+    brand: "Xiaomi",
+  },
+  {
+    name: "智慧生活",
+    package: "com.miui.hybrid.accessory",
+    desc: "智能设备连接",
+    brand: "Xiaomi",
+  },
+  {
+    name: "米家",
+    package: "com.xiaomi.smarthome",
+    desc: "智能家居控制",
+    brand: "Xiaomi",
+  },
+  {
+    name: "收音机",
+    package: "com.miui.fm",
+    desc: "FM收音机",
+    brand: "Xiaomi",
+  },
+  {
+    name: "收音机调频服务",
+    package: "com.miui.fmservice",
+    desc: "FM调频服务",
+    brand: "Xiaomi",
+  },
+  {
+    name: "驾车场景",
+    package: "com.xiaomi.drivemode",
+    desc: "驾车模式",
     brand: "Xiaomi",
   },
 
-  // ==================== 其他可移除服务 ====================
+  // ==================== 其他可禁用服务 ====================
   {
-    name: "网络短信",
-    package: "com.xiaomi.mircs",
-    desc: "富媒体短信服务",
-    brand: "Xiaomi",
-  },
-  {
-    name: "SIM激活",
-    package: "com.xiaomi.simactivate.service",
-    desc: "SIM卡激活服务",
-    brand: "Xiaomi",
-  },
-  {
-    name: "自由窗口",
-    package: "com.miui.freeform",
-    desc: "小窗模式服务",
-    brand: "Xiaomi",
-  },
-  {
-    name: "无障碍",
-    package: "com.miui.accessibility",
-    desc: "无障碍/闻声服务",
-    brand: "Xiaomi",
-  },
-  {
-    name: "主屏提示",
+    name: "主屏幕提示",
     package: "com.android.protips",
     desc: "桌面使用提示",
     brand: "Xiaomi",
   },
   {
-    name: "互动屏保",
+    name: "基本互动屏保",
     package: "com.android.dreams.basic",
     desc: "基本屏保服务",
     brand: "Xiaomi",
   },
   {
-    name: "清理大师",
-    package: "com.miui.cleanmaster",
-    desc: "清理工具（含广告）",
+    name: "照片屏幕保护程序",
+    package: "com.android.dreams.phototable",
+    desc: "照片屏保服务",
     brand: "Xiaomi",
   },
   {
-    name: "打印服务",
+    name: "打印处理服务",
     package: "com.android.printspooler",
-    desc: "系统打印服务",
+    desc: "打印服务",
+    brand: "Xiaomi",
+  },
+  {
+    name: "系统打印服务",
+    package: "com.android.bips",
+    desc: "系统打印组件",
+    brand: "Xiaomi",
+  },
+  {
+    name: "Android无障碍套件",
+    package: "com.google.android.marvin.talkback",
+    desc: "TalkBack无障碍服务",
     brand: "Xiaomi",
   },
 ];
