@@ -588,25 +588,11 @@ function App() {
 
         {/* 右侧内容区域 */}
         <div className="flex-1 overflow-hidden flex flex-col">
-          {/* 顶部栏 - 固定 */}
-          <div className="border-b bg-card/50 backdrop-blur-sm shrink-0">
-            <div className="px-6 py-4 flex items-center justify-between">
-              <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-                {menuNames[activeSidebar]}
-                {preheating && (
-                  <span className="ml-2 inline-flex items-center px-2 py-1 rounded-md bg-blue-500/20 text-blue-400 text-xs font-normal animate-pulse">
-                    ⏳ 正在预热 ADB...
-                  </span>
-                )}
-              </h1>
-            </div>
-          </div>
-
-          {/* 内容区域 - 可滚动 */}
-          <div className="flex-1 overflow-y-auto p-6 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden relative">
-            {/* 预热覆盖层 */}
+          {/* 内容区域 - 全屏容器 */}
+          <div className="flex-1 overflow-hidden relative bg-background/50">
+            {/* 预热覆盖层 - 保持不变 */}
             {isPreheatingOverlay && (
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center">
+              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
                 <div className="text-center">
                   <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-500/20 mb-4">
                     <svg
@@ -636,43 +622,47 @@ function App() {
                   <p className="text-sm text-muted-foreground">
                     首次启动需要 3-5 秒，请稍候...
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    预热完成后即可使用所有功能
-                  </p>
                 </div>
               </div>
             )}
 
-            {/* 设备管理内容 */}
+            {/* 设备管理 - 全屏布局 */}
             {activeSidebar === "device" && (
-              <div
-                className={`space-y-4 max-w-6xl mx-auto ${
-                  preheating ? "pointer-events-none opacity-50" : ""
-                }`}
-              >
-                {/* 第一行：设备列表 + WiFi 连接 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <DeviceListCard
-                    devices={devices}
-                    selectedDevice={selectedDevice}
-                    setSelectedDevice={setSelectedDevice}
-                    refreshDevices={refreshDevices}
-                    autoDetect={autoDetect}
-                    setAutoDetect={setAutoDetect}
-                    disconnectDevice={disconnectDevice}
-                  />
-                  <WiFiConnectCard
-                    executeAdbCommand={executeAdbCommand}
-                    refreshDevices={refreshDevices}
-                  />
+              <div className="h-full flex flex-col">
+                {/* 统一头部 */}
+
+                {/* 可滚动内容区 */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  <div
+                    className={`space-y-4 max-w-6xl mx-auto ${
+                      preheating ? "pointer-events-none opacity-50" : ""
+                    }`}
+                  >
+                    {/* 第一行：设备列表 + WiFi 连接 */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <DeviceListCard
+                        devices={devices}
+                        selectedDevice={selectedDevice}
+                        setSelectedDevice={setSelectedDevice}
+                        refreshDevices={refreshDevices}
+                        autoDetect={autoDetect}
+                        setAutoDetect={setAutoDetect}
+                        disconnectDevice={disconnectDevice}
+                      />
+                      <WiFiConnectCard
+                        executeAdbCommand={executeAdbCommand}
+                        refreshDevices={refreshDevices}
+                      />
+                    </div>
+                    {/* 第二行：当前设备信息 */}
+                    <DeviceInfoCard
+                      selectedDevice={selectedDevice}
+                      loadingInfo={loadingInfo}
+                      deviceInfo={deviceInfo}
+                      fetchDeviceInfo={fetchDeviceInfo}
+                    />
+                  </div>
                 </div>
-                {/* 第二行：当前设备信息 */}
-                <DeviceInfoCard
-                  selectedDevice={selectedDevice}
-                  loadingInfo={loadingInfo}
-                  deviceInfo={deviceInfo}
-                  fetchDeviceInfo={fetchDeviceInfo}
-                />
               </div>
             )}
 
