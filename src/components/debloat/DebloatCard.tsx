@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Ban, Play, Loader2, Check } from "lucide-react";
+import { Package, Play, Loader2, Ban, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -205,9 +205,9 @@ export function DebloatCard({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between py-3">
           <div className="flex items-center gap-3">
-            <Ban className="w-5 h-5" />
+            <Package className="w-5 h-5" />
             <div className="flex flex-col gap-0.5">
-              <span className="font-semibold">禁用预装</span>
+              <span className="font-semibold">内置应用</span>
               {detectedBrand && (
                 <span className="text-xs text-muted-foreground">
                   检测到 {detectedBrand}，共 {filteredPackages.length} 个应用

@@ -569,7 +569,7 @@ function App() {
   // 菜单名称映射
   const menuNames: Record<SidebarType, string> = {
     device: "设备管理",
-    debloat: "卸载预装",
+    debloat: "内置应用",
     log: "系统记录",
   };
 
@@ -584,7 +584,6 @@ function App() {
         <Sidebar
           activeSidebar={activeSidebar}
           setActiveSidebar={setActiveSidebar}
-          operationLogCount={operationLog.length}
           disabled={preheating}
         />
 

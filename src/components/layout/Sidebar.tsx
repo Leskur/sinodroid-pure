@@ -1,4 +1,4 @@
-import { Smartphone, Trash2, FileText } from "lucide-react";
+import { Smartphone, Package, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export type SidebarType = "device" | "debloat" | "log";
@@ -6,14 +6,12 @@ export type SidebarType = "device" | "debloat" | "log";
 interface SidebarProps {
   activeSidebar: SidebarType;
   setActiveSidebar: (type: SidebarType) => void;
-  operationLogCount: number;
   disabled?: boolean;
 }
 
 export function Sidebar({
   activeSidebar,
   setActiveSidebar,
-  operationLogCount,
   disabled = false,
 }: SidebarProps) {
   return (
@@ -46,8 +44,8 @@ export function Sidebar({
             onClick={() => !disabled && setActiveSidebar("debloat")}
             disabled={disabled}
           >
-            <Trash2 className="w-4 h-4 mr-2" />
-            卸载预装
+            <Package className="w-4 h-4 mr-2" />
+            内置应用
           </Button>
           <Button
             variant={activeSidebar === "log" ? "default" : "ghost"}
@@ -57,11 +55,6 @@ export function Sidebar({
           >
             <FileText className="w-4 h-4 mr-2" />
             系统记录
-            {operationLogCount > 0 && (
-              <span className="ml-auto text-xs bg-primary text-primary-foreground px-1.5 rounded-full">
-                {operationLogCount}
-              </span>
-            )}
           </Button>
         </nav>
       </div>
