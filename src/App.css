@@ -748,6 +748,13 @@ body {
   background: var(--bg-hover);
 }
 
+/* 设备列表细滚动条 */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 2px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.3) transparent; }
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .sidebar {

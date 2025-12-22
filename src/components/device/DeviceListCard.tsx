@@ -2,7 +2,6 @@ import { RefreshCw, Smartphone, Unplug, Usb, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { type Device, type DeviceConnectionType } from "@/lib/adb";
 
@@ -25,7 +24,7 @@ const getConnectionTypeConfig = (type?: DeviceConnectionType) => {
         label: "WiFi",
         color: "text-blue-400",
         bg: "bg-blue-500/20",
-        badgeColor: "bg-blue-600"
+        badgeColor: "bg-blue-600 text-blue-100"
       };
     case "usb":
       return {
@@ -33,7 +32,7 @@ const getConnectionTypeConfig = (type?: DeviceConnectionType) => {
         label: "USB",
         color: "text-green-400",
         bg: "bg-green-500/20",
-        badgeColor: "bg-green-600"
+        badgeColor: "bg-green-600 text-green-100"
       };
     default:
       // 默认当作 USB 处理
@@ -42,7 +41,7 @@ const getConnectionTypeConfig = (type?: DeviceConnectionType) => {
         label: "USB",
         color: "text-green-400",
         bg: "bg-green-500/20",
-        badgeColor: "bg-green-600"
+        badgeColor: "bg-green-600 text-green-100"
       };
   }
 };
@@ -56,30 +55,25 @@ export function DeviceListCard({
   setAutoDetect,
   disconnectDevice,
 }: DeviceListCardProps) {
-  // Debug: Log received devices
-  if (devices.length > 0) {
-    console.log("[DeviceListCard] Received devices:", devices.map(d => ({
-      id: d.id,
-      status: d.status,
-      connectionType: d.connectionType,
-      hasType: !!d.connectionType
-    })));
-  }
-
   return (
-    <Card className="lg:col-span-1">
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Smartphone className="w-5 h-5" />
+    <Card className="lg:col-span-1 border-2 border-border/50 shadow-lg hover:shadow-xl transition-shadow duration-300">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg flex items-center gap-2 font-semibold">
+          <div className="bg-blue-500/20 p-1.5 rounded-lg">
+            <Smartphone className="w-5 h-5 text-blue-400" />
+          </div>
           设备列表
         </CardTitle>
-        <CardDescription>选择要操作的设备</CardDescription>
+        <CardDescription className="text-sm text-muted-foreground/80">
+          选择要操作的设备
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
+        {/* 控制按钮组 */}
         <div className="flex gap-2">
           <Button
             onClick={refreshDevices}
-            className="flex-1"
+            className="flex-1 shadow-sm hover:shadow-md transition-shadow"
             variant="secondary"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -87,86 +81,141 @@ export function DeviceListCard({
           </Button>
           <Button
             onClick={() => setAutoDetect(!autoDetect)}
-            className={`flex-1 ${autoDetect ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-600'}`}
+            className={cn(
+              "flex-1 shadow-sm hover:shadow-md transition-all",
+              autoDetect
+                ? "bg-green-600 hover:bg-green-700 hover:scale-[1.02]"
+                : "bg-gray-600 hover:bg-gray-700"
+            )}
             variant={autoDetect ? "default" : "secondary"}
           >
             {autoDetect ? "自动: 开" : "自动: 关"}
           </Button>
         </div>
+
+        {/* 自动检测状态指示器 */}
         {autoDetect && (
-          <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <div className="flex items-center gap-2 text-xs px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            自动检测中 (每3秒)
+            <span className="font-medium">自动检测中</span>
+            <span className="text-green-500/60">(每3秒)</span>
           </div>
         )}
-        <ScrollArea className="h-60 rounded-md border [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden">
-          <div className="p-2 space-y-2">
+
+        {/* 设备列表 */}
+        <div className="h-64 rounded-lg border border-border/50 bg-background/50 overflow-hidden">
+          <div className="h-full overflow-y-auto p-2 space-y-2 custom-scrollbar">
             {devices.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                未发现设备
+              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2 w-full h-full">
+                <div className="bg-gray-500/10 p-3 rounded-full">
+                  <Smartphone className="w-6 h-6 opacity-50" />
+                </div>
+                <div className="text-sm font-medium">未发现设备</div>
+                <div className="text-xs opacity-60">请连接设备或检查 ADB</div>
               </div>
             ) : (
               devices.map((device) => {
-                // 安全获取连接类型，处理可能的 undefined 情况
                 const connectionType = device.connectionType || "usb";
                 const config = getConnectionTypeConfig(connectionType);
                 const Icon = config.icon;
                 const isWifi = connectionType === "wifi";
+                const isSelected = selectedDevice === device.id;
 
                 return (
                   <div
                     key={device.id}
                     className={cn(
-                      "flex gap-1 items-center",
-                      selectedDevice === device.id && "ring-2 ring-primary rounded-md"
+                      "group relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200",
+                      "hover:shadow-md hover:scale-[1.01]",
+                      // 默认状态
+                      "bg-card border-border/60 hover:border-blue-400/50",
+                      // 选中状态
+                      isSelected && "bg-blue-500/10 border-blue-500 shadow-lg shadow-blue-500/20",
+                      // WiFi 设备悬停时显示断开按钮
+                      isWifi && "pr-12"
                     )}
+                    onClick={() => setSelectedDevice(device.id)}
                   >
-                    {/* 只对 WiFi 设备显示断开按钮 - 放在最前面 */}
+                    <div className="flex items-center gap-3">
+                      {/* 连接类型图标 */}
+                      <div className={cn(
+                        "p-2 rounded-lg shrink-0 transition-transform duration-200",
+                        config.bg,
+                        "group-hover:scale-110"
+                      )}>
+                        <Icon className={cn("w-5 h-5", config.color)} />
+                      </div>
+
+                      {/* 设备信息 */}
+                      <div className="flex-1 min-w-0">
+                        <div className={cn(
+                          "font-mono text-sm font-semibold truncate",
+                          isSelected ? "text-blue-300" : "text-foreground"
+                        )}>
+                          {device.id}
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <Badge className={cn(
+                            "text-[10px] px-1.5 py-0.5 font-medium",
+                            device.status === "device"
+                              ? config.badgeColor
+                              : "bg-gray-600 text-gray-300"
+                          )}>
+                            {device.status}
+                          </Badge>
+                          <span className={cn(
+                            "text-[10px] px-1.5 py-0.5 rounded",
+                            "bg-gray-500/20 text-gray-400"
+                          )}>
+                            {config.label}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* WiFi 断开按钮 */}
                     {isWifi && (
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => disconnectDevice(device.id)}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          disconnectDevice(device.id);
+                        }}
+                        className={cn(
+                          "absolute right-2 top-1/2 -translate-y-1/2",
+                          "text-red-400 hover:text-red-500 hover:bg-red-500/10",
+                          "opacity-0 group-hover:opacity-100 transition-all duration-200",
+                          "hover:scale-110"
+                        )}
                         title="断开 WiFi 连接"
                       >
                         <Unplug className="w-4 h-4" />
                       </Button>
                     )}
 
-                    {/* 状态标识 */}
-                    <Badge
-                      variant={device.status === "device" ? "default" : "secondary"}
-                      className={cn(
-                        "text-[10px] shrink-0",
-                        device.status === "device" ? config.badgeColor : "bg-gray-500"
-                      )}
-                    >
-                      {device.status}
-                    </Badge>
-
-                    {/* 设备按钮 - 占满剩余空间 */}
-                    <Button
-                      variant={selectedDevice === device.id ? "default" : "ghost"}
-                      className={cn(
-                        "flex-1 justify-start text-left font-mono text-xs min-w-0",
-                        selectedDevice === device.id && "bg-primary text-primary-foreground"
-                      )}
-                      onClick={() => setSelectedDevice(device.id)}
-                      title={device.id}  // 完整设备名提示
-                    >
-                      {/* 连接类型图标 */}
-                      <Icon className={cn("w-3.5 h-3.5 mr-1.5 shrink-0", config.color)} />
-
-                      {/* 设备ID - 允许压缩但保留最小空间 */}
-                      <span className="truncate min-w-0">{device.id}</span>
-                    </Button>
+                    {/* 选中指示器 */}
+                    {isSelected && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg" />
+                    )}
                   </div>
                 );
               })
             )}
           </div>
-        </ScrollArea>
+        </div>
+
+        {/* 统计信息 */}
+        {devices.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+            <span>共 {devices.length} 台设备</span>
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+              {devices.filter(d => d.connectionType === "wifi").length} WiFi
+            </span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

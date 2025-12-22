@@ -25,73 +25,9 @@ import {
   type DeviceInfo,
 } from "@/components/device/DeviceInfoCard";
 import { WiFiConnectCard } from "@/components/device/WiFiConnectCard";
-import {
-  DebloatCard,
-  type BloatwarePackage,
-} from "@/components/debloat/DebloatCard";
+import { DebloatCard } from "@/components/debloat/DebloatCard";
 import { LogPanel } from "@/components/logs/LogPanel";
-
-// 为中国安卓设备优化的预设命令（按品牌分类）
-const BLOATWARE_PACKAGES: BloatwarePackage[] = [
-  // 小米/Redmi
-  {
-    name: "小米广告服务",
-    package: "com.miui.systemAdSolution",
-    desc: "小米系统广告服务",
-    brand: "Xiaomi",
-  },
-  {
-    name: "小米系统广告",
-    package: "com.miui.systemAdService",
-    desc: "小米系统广告",
-    brand: "Xiaomi",
-  },
-  {
-    name: "小米应用推荐",
-    package: "com.miui.personalassistant",
-    desc: "小米智能推荐",
-    brand: "Xiaomi",
-  },
-  // 华为
-  {
-    name: "华为彩信广告",
-    package: "com.huawei.android.hwouc",
-    desc: "华为系统更新广告",
-    brand: "Huawei",
-  },
-  {
-    name: "华为智能推荐",
-    package: "com.huawei.android.hwSmartAds",
-    desc: "华为智能广告",
-    brand: "Huawei",
-  },
-  // OPPO
-  {
-    name: "OPPO 推送服务",
-    package: "com.oppo.pushservice",
-    desc: "OPPO 推送广告",
-    brand: "OPPO",
-  },
-  {
-    name: "OPPO 桌面广告",
-    package: "com.oppo.launcher.res",
-    desc: "OPPO 桌面广告",
-    brand: "OPPO",
-  },
-  // VIVO
-  {
-    name: "VIVO 推送服务",
-    package: "com.vivo.push",
-    desc: "VIVO 推送广告",
-    brand: "VIVO",
-  },
-  {
-    name: "VIVO 桌面广告",
-    package: "com.bbk.launcher2",
-    desc: "VIVO 桌面广告",
-    brand: "VIVO",
-  },
-];
+import { BLOATWARE_PACKAGES } from "@/data/bloatwarePackages";
 
 function App() {
   const [initializing, setInitializing] = useState(true);
