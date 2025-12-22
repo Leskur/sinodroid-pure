@@ -25,6 +25,7 @@ import {
 import AppIcon from "@/components/AppIcon";
 import type { DeviceInfo } from "@/components/device/DeviceInfoCard";
 import { getAppName, getAppDesc } from "@/data/bloatwarePackages";
+import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 
 // 扫描到的应用信息
 interface ScannedApp {
@@ -64,6 +65,16 @@ export function DebloatCard({
   const [selectedPackages, setSelectedPackages] = useState<Set<string>>(
     new Set()
   );
+
+  // 二次确认弹窗状态
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<
+    () => Promise<void> | void
+  >(() => {});
+  const [confirmMessage, setConfirmMessage] = useState({
+    title: "",
+    description: "",
+  });
 
   // 过滤和排序
   const filteredPackages = useMemo(() => {
@@ -238,69 +249,77 @@ export function DebloatCard({
       toast.info("选中的应用都已禁用");
       return;
     }
-    setOperating(true);
-    toast.info("开始批量禁用", {
-      description: `共 ${packagesToProcess.length} 个应用`,
+
+    // 弹出确认框
+    setConfirmMessage({
+      title: "⚠ 危险操作警告",
+      description: `您即将批量禁用 ${packagesToProcess.length} 个应用。禁用关键系统组件可能导致设备黑屏、无限重启或无法开机。\n\n请确保您知道自己在做什么。是否继续？`,
     });
-    let failedCount = 0;
-    try {
-      for (const item of packagesToProcess) {
-        addLog(`正在禁用: ${item.name} (${item.package})`);
-        try {
-          await executeAdbCommand([
-            "-s",
-            selectedDevice,
-            "shell",
-            "pm",
-            "disable-user",
-            "--user",
-            "0",
-            item.package,
-          ]);
-          addLog(`✅ 已禁用: ${item.name}`);
-          setInstalledMap((prev) => ({ ...prev, [item.package]: false }));
-        } catch (err) {
-          const errMsg = String(err);
-          // 如果是受保护的系统包，尝试卸载用户版本
-          if (errMsg.includes("Cannot disable system packages")) {
-            try {
-              addLog(`ℹ️ ${item.name} 尝试卸载用户版本...`);
-              await executeAdbCommand([
-                "-s",
-                selectedDevice,
-                "shell",
-                "pm",
-                "uninstall",
-                "--user",
-                "0",
-                item.package,
-              ]);
-              addLog(`✅ 已卸载用户版本: ${item.name}`);
-              setInstalledMap((prev) => ({ ...prev, [item.package]: false }));
-            } catch {
+    setConfirmAction(() => async () => {
+      setOperating(true);
+      toast.info("开始批量禁用", {
+        description: `共 ${packagesToProcess.length} 个应用`,
+      });
+      let failedCount = 0;
+      try {
+        for (const item of packagesToProcess) {
+          addLog(`正在禁用: ${item.name} (${item.package})`);
+          try {
+            await executeAdbCommand([
+              "-s",
+              selectedDevice,
+              "shell",
+              "pm",
+              "disable-user",
+              "--user",
+              "0",
+              item.package,
+            ]);
+            addLog(`✅ 已禁用: ${item.name}`);
+            setInstalledMap((prev) => ({ ...prev, [item.package]: false }));
+          } catch (err) {
+            const errMsg = String(err);
+            if (errMsg.includes("Cannot disable system packages")) {
+              try {
+                addLog(`ℹ️ ${item.name} 尝试卸载用户版本...`);
+                await executeAdbCommand([
+                  "-s",
+                  selectedDevice,
+                  "shell",
+                  "pm",
+                  "uninstall",
+                  "--user",
+                  "0",
+                  item.package,
+                ]);
+                addLog(`✅ 已卸载用户版本: ${item.name}`);
+                setInstalledMap((prev) => ({ ...prev, [item.package]: false }));
+              } catch {
+                failedCount++;
+                addLog(`⚠️ ${item.name}: 无法禁用或卸载`);
+              }
+            } else if (errMsg.includes("Unknown package")) {
               failedCount++;
-              addLog(`⚠️ ${item.name}: 无法禁用或卸载`);
+              addLog(`⚠️ 跳过 ${item.name}: 设备上不存在此应用`);
+            } else {
+              failedCount++;
+              addLog(`❌ 失败 ${item.name}: ${errMsg}`);
             }
-          } else if (errMsg.includes("Unknown package")) {
-            failedCount++;
-            addLog(`⚠️ 跳过 ${item.name}: 设备上不存在此应用`);
-          } else {
-            failedCount++;
-            addLog(`❌ 失败 ${item.name}: ${errMsg}`);
           }
         }
+        if (failedCount > 0) {
+          toast.warning("批量禁用完成", {
+            description: `${failedCount} 个应用跳过或失败`,
+          });
+        } else {
+          toast.success("批量禁用完成");
+        }
+        setSelectedPackages(new Set());
+      } finally {
+        setOperating(false);
       }
-      if (failedCount > 0) {
-        toast.warning("批量禁用完成", {
-          description: `${failedCount} 个应用跳过或失败`,
-        });
-      } else {
-        toast.success("批量禁用完成");
-      }
-      setSelectedPackages(new Set());
-    } finally {
-      setOperating(false);
-    }
+    });
+    setConfirmOpen(true);
   };
 
   const batchEnableSelected = async () => {
@@ -649,55 +668,33 @@ export function DebloatCard({
                       <AppIcon package={item.package} size={40} />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className="text-sm font-medium text-foreground truncate max-w-[180px]"
-                          title={item.name}
-                        >
-                          {item.name}
-                        </span>
-                        {!isInstalled && (
-                          <span className="px-1 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 leading-none">
-                            已禁用
-                          </span>
-                        )}
-                      </div>
-                      <span
-                        className="text-[10px] text-muted-foreground font-mono truncate max-w-[200px] hover:text-clip"
-                        title={item.package}
-                      >
+                      <span className="text-sm font-medium truncate leading-tight mb-0.5">
+                        {item.name}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-mono truncate opacity-70">
                         {item.package}
                       </span>
+                      {item.desc && (
+                        <span className="text-[10px] text-muted-foreground truncate mt-1">
+                          {item.desc}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* 描述与路径 */}
-                  <div className="text-xs text-muted-foreground/80 line-clamp-2 h-8 leading-4 mt-1">
-                    {item.desc || "暂无描述"}
-                  </div>
-
-                  {/* 单个操作按钮 (Hover显示) */}
-                  <div className="pt-2 mt-auto border-t border-border/30 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={(e) => {
-                        e.stopPropagation(); // 阻止触发卡片选中
-                        handleAppAction(item, isInstalled);
-                      }}
-                      className={`h-6 text-[10px] px-2 ${
-                        isInstalled
-                          ? "text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
-                          : "text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/20"
-                      }`}
-                    >
-                      {isInstalled ? (
+                  {/* 状态标签 */}
+                  <div className="flex items-center gap-2 mt-auto pt-1">
+                    {!isInstalled ? (
+                      <div className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
                         <Ban className="w-3 h-3 mr-1" />
-                      ) : (
+                        已禁用
+                      </div>
+                    ) : (
+                      <div className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
                         <Check className="w-3 h-3 mr-1" />
-                      )}
-                      {isInstalled ? "禁用" : "启用"}
-                    </Button>
+                        已启用
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -705,6 +702,21 @@ export function DebloatCard({
           </div>
         )}
       </div>
+
+      <ConfirmationDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={confirmMessage.title}
+        description={
+          <span className="whitespace-pre-wrap">
+            {confirmMessage.description}
+          </span>
+        }
+        onConfirm={confirmAction}
+        confirmText="确定禁用"
+        cancelText="取消"
+        variant="destructive"
+      />
     </div>
   );
 }

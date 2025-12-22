@@ -27,6 +27,7 @@ import {
 import { WiFiConnectCard } from "@/components/device/WiFiConnectCard";
 import { DebloatCard } from "@/components/debloat/DebloatCard";
 import { LogPanel } from "@/components/logs/LogPanel";
+import { AboutCard } from "@/components/about/AboutCard";
 
 function App() {
   const [initializing, setInitializing] = useState(true);
@@ -570,6 +571,7 @@ function App() {
     device: "设备管理",
     debloat: "内置应用",
     log: "系统记录",
+    about: "关于软件",
   };
 
   // 预热中状态 - 显示覆盖层
@@ -628,6 +630,13 @@ function App() {
               </div>
             )}
 
+            {/* 关于页面 */}
+            {activeSidebar === "about" && (
+              <div className="h-full relative overflow-hidden">
+                <AboutCard />
+              </div>
+            )}
+
             {/* 设备管理 - 全屏布局 */}
             {activeSidebar === "device" && (
               <div className="h-full flex flex-col">
@@ -671,7 +680,7 @@ function App() {
             {/* 系统精简内容 */}
             {activeSidebar === "debloat" && (
               <div
-                className={`${
+                className={`h-full ${
                   preheating ? "pointer-events-none opacity-50" : ""
                 }`}
               >
@@ -691,15 +700,15 @@ function App() {
               <LogPanel operationLog={operationLog} clearLog={clearLog} />
             )}
           </div>
+
+          {/* 底部状态栏 - 跟随右侧内容区域 */}
+          <StatusBar
+            adbVersion={adbVersion}
+            devicesCount={devices.length}
+            preheating={preheating}
+          />
         </div>
       </div>
-
-      {/* 底部状态栏 - 固定在窗口底部 */}
-      <StatusBar
-        adbVersion={adbVersion}
-        devicesCount={devices.length}
-        preheating={preheating}
-      />
 
       {/* Toast 提示 */}
       <Toaster position="top-right" richColors />

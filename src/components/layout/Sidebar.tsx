@@ -1,7 +1,7 @@
-import { Smartphone, Package, FileText } from "lucide-react";
+import { Smartphone, Package, FileText, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export type SidebarType = "device" | "debloat" | "log";
+export type SidebarType = "device" | "debloat" | "log" | "about";
 
 interface SidebarProps {
   activeSidebar: SidebarType;
@@ -15,7 +15,7 @@ export function Sidebar({
   disabled = false,
 }: SidebarProps) {
   return (
-    <aside className="w-64 border-r bg-card/50 overflow-y-auto flex-shrink-0 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden h-screen sticky top-0">
+    <aside className="w-64 border-r bg-card/50 overflow-y-auto flex-shrink-0 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden h-full sticky top-0 flex flex-col justify-between">
       <div className="p-4 space-y-4">
         {/* Logo 区域 */}
         <div className="flex items-center gap-3" data-tauri-drag-region>
@@ -57,6 +57,17 @@ export function Sidebar({
             系统记录
           </Button>
         </nav>
+      </div>
+
+      <div className="p-4">
+        <Button
+          variant={activeSidebar === "about" ? "secondary" : "ghost"}
+          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          onClick={() => setActiveSidebar("about")}
+        >
+          <Info className="w-4 h-4 mr-2" />
+          关于软件
+        </Button>
       </div>
     </aside>
   );
