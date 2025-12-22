@@ -27,7 +27,6 @@ import {
 import { WiFiConnectCard } from "@/components/device/WiFiConnectCard";
 import { DebloatCard } from "@/components/debloat/DebloatCard";
 import { LogPanel } from "@/components/logs/LogPanel";
-import { BLOATWARE_PACKAGES } from "@/data/bloatwarePackages";
 
 function App() {
   const [initializing, setInitializing] = useState(true);
@@ -687,7 +686,6 @@ function App() {
                 <DebloatCard
                   selectedDevice={selectedDevice}
                   operating={operating}
-                  bloatwarePackages={BLOATWARE_PACKAGES}
                   addLog={addLog}
                   setOperating={setOperating}
                   executeAdbCommand={executeAdbCommand}

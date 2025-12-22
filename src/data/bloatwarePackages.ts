@@ -1,65 +1,87 @@
-/**
- * 预装应用列表模块
- * 数据按品牌分别维护在 brands/ 目录下
- */
-
-// 导出类型定义
-export { type BloatwarePackage } from "./brands";
-
-// 导入所有品牌数据
-import { ALL_BRAND_PACKAGES, type BloatwarePackage } from "./brands";
+import { XIAOMI_PACKAGES } from "./brands/xiaomi";
+import { HUAWEI_PACKAGES } from "./brands/huawei";
+import { OPPO_PACKAGES } from "./brands/oppo";
+import { VIVO_PACKAGES } from "./brands/vivo";
 
 /**
- * 所有预装应用列表（向后兼容）
+ * 包名到应用信息的映射表
  */
-export const BLOATWARE_PACKAGES: BloatwarePackage[] = ALL_BRAND_PACKAGES;
+export interface AppInfo {
+  name: string;
+  desc: string;
+}
 
-/**
- * 按品牌获取预装应用
- * @param brand 品牌名称（如 "Xiaomi", "Huawei"）
- * @returns 该品牌的应用列表
- */
-export function getPackagesByBrand(brand: string): BloatwarePackage[] {
-  return BLOATWARE_PACKAGES.filter((pkg) => pkg.brand === brand);
+// 创建包名到应用信息的映射
+const packageNameMap = new Map<string, AppInfo>();
+
+// 初始化所有品牌应用映射
+const ALL_PACKAGES = [
+  ...XIAOMI_PACKAGES,
+  ...HUAWEI_PACKAGES,
+  ...OPPO_PACKAGES,
+  ...VIVO_PACKAGES,
+];
+
+for (const pkg of ALL_PACKAGES) {
+  if (!pkg.package) continue;
+  packageNameMap.set(pkg.package, {
+    name: pkg.name,
+    desc: pkg.desc,
+  });
 }
 
 /**
- * 搜索预装应用
- * @param keyword 关键词（支持包名、名称、描述）
- * @returns 匹配的应用列表
+ * 根据包名获取应用信息
+ * @param packageName 包名
+ * @returns 应用信息，如果找不到则返回 null
  */
-export function searchPackages(keyword: string): BloatwarePackage[] {
-  const lowerKeyword = keyword.toLowerCase();
-  return BLOATWARE_PACKAGES.filter(
-    (pkg) =>
-      pkg.name.toLowerCase().includes(lowerKeyword) ||
-      pkg.package.toLowerCase().includes(lowerKeyword) ||
-      pkg.desc.toLowerCase().includes(lowerKeyword) ||
-      pkg.brand.toLowerCase().includes(lowerKeyword)
-  );
+export function getAppInfo(packageName: string): AppInfo | null {
+  return packageNameMap.get(packageName) || null;
 }
 
 /**
- * 获取所有支持的品牌
- * @returns 品牌列表
+ * 根据包名获取应用名称
+ * @param packageName 包名
+ * @returns 应用名称，如果找不到则从包名生成
  */
-export function getAllBrands(): string[] {
-  const brands = new Set(BLOATWARE_PACKAGES.map((pkg) => pkg.brand));
-  return Array.from(brands).sort();
-}
-
-/**
- * 获取应用总数
- */
-export const TOTAL_BLOATWARE_COUNT = BLOATWARE_PACKAGES.length;
-
-/**
- * 按品牌分组的应用
- */
-export const PACKAGES_BY_BRAND = BLOATWARE_PACKAGES.reduce((acc, pkg) => {
-  if (!acc[pkg.brand]) {
-    acc[pkg.brand] = [];
+export function getAppName(packageName: string): string {
+  const info = packageNameMap.get(packageName);
+  if (info) {
+    return info.name;
   }
-  acc[pkg.brand].push(pkg);
-  return acc;
-}, {} as Record<string, BloatwarePackage[]>);
+  // 从包名生成显示名称
+  // 例如 com.miui.touchassistant -> touchassistant -> Touch Assistant
+  const lastPart = packageName.split(".").pop() || packageName;
+  return lastPart
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (str) => str.toUpperCase())
+    .trim();
+}
+
+/**
+ * 根据包名获取应用描述
+ * @param packageName 包名
+ * @returns 应用描述，如果找不到则返回空字符串
+ */
+export function getAppDesc(packageName: string): string {
+  const info = packageNameMap.get(packageName);
+  return info?.desc || "";
+}
+
+// 导出原有内容以保持兼容性
+// 导出原有内容以保持兼容性
+export { XIAOMI_PACKAGES };
+export { HUAWEI_PACKAGES };
+export { OPPO_PACKAGES };
+export { VIVO_PACKAGES };
+export type { BloatwarePackage } from "./brands/types";
+
+// 合并所有品牌的包列表
+import type { BloatwarePackage } from "./brands/types";
+
+export const BLOATWARE_PACKAGES: BloatwarePackage[] = [
+  ...XIAOMI_PACKAGES,
+  ...HUAWEI_PACKAGES,
+  ...OPPO_PACKAGES,
+  ...VIVO_PACKAGES,
+];

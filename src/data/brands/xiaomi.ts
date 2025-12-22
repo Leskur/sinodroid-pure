@@ -3,7 +3,7 @@ import { type BloatwarePackage } from "./types";
 /**
  * 小米/Redmi 预装应用列表
  * 参考来源：https://miuiver.com/wp-content/uploads/miui-pre-installed-software.html
- * 以下应用经过验证可以安全禁用，不会影响系统正常使用
+ * 仅包含小米系统应用，不含第三方预装应用
  */
 export const XIAOMI_PACKAGES: BloatwarePackage[] = [
   // ==================== 广告与数据追踪 ====================
@@ -50,7 +50,7 @@ export const XIAOMI_PACKAGES: BloatwarePackage[] = [
     brand: "Xiaomi",
   },
 
-  // ==================== 小米服务/广告应用 ====================
+  // ==================== 小米服务应用 ====================
   {
     name: "小米商城",
     package: "com.xiaomi.shop",
@@ -141,106 +141,6 @@ export const XIAOMI_PACKAGES: BloatwarePackage[] = [
     name: "游戏服务",
     package: "com.xiaomi.gamecenter.sdk.service",
     desc: "游戏SDK服务",
-    brand: "Xiaomi",
-  },
-
-  // ==================== 输入法（可替换） ====================
-  {
-    name: "搜狗输入法小米版",
-    package: "com.sohu.inputmethod.sogou.xiaomi",
-    desc: "预装搜狗输入法",
-    brand: "Xiaomi",
-  },
-  {
-    name: "百度输入法小米版",
-    package: "com.baidu.input_mi",
-    desc: "预装百度输入法",
-    brand: "Xiaomi",
-  },
-  {
-    name: "讯飞输入法小米版",
-    package: "com.iflytek.inputmethod.miui",
-    desc: "预装讯飞输入法",
-    brand: "Xiaomi",
-  },
-
-  // ==================== 第三方预装应用 ====================
-  {
-    name: "今日头条",
-    package: "com.ss.android.article.news",
-    desc: "第三方新闻应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "抖音短视频",
-    package: "com.ss.android.ugc.aweme",
-    desc: "第三方短视频应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "微博",
-    package: "com.sina.weibo",
-    desc: "第三方社交应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "手机淘宝",
-    package: "com.taobao.taobao",
-    desc: "第三方购物应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "淘特",
-    package: "com.taobao.litetao",
-    desc: "第三方购物应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "拼多多",
-    package: "com.xunmeng.pinduoduo",
-    desc: "第三方购物应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "支付宝",
-    package: "com.eg.android.AlipayGphone",
-    desc: "第三方支付应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "百度",
-    package: "com.baidu.searchbox",
-    desc: "第三方搜索应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "百度地图",
-    package: "com.baidu.BaiduMap",
-    desc: "第三方地图应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "爱奇艺",
-    package: "com.qiyi.video",
-    desc: "第三方视频应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "腾讯视频",
-    package: "com.tencent.qqlive",
-    desc: "第三方视频应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "番茄免费小说",
-    package: "com.dragon.read",
-    desc: "第三方阅读应用",
-    brand: "Xiaomi",
-  },
-  {
-    name: "UC浏览器",
-    package: "com.UCMobile",
-    desc: "第三方浏览器",
     brand: "Xiaomi",
   },
 
@@ -457,12 +357,6 @@ export const XIAOMI_PACKAGES: BloatwarePackage[] = [
     name: "系统打印服务",
     package: "com.android.bips",
     desc: "系统打印组件",
-    brand: "Xiaomi",
-  },
-  {
-    name: "Android无障碍套件",
-    package: "com.google.android.marvin.talkback",
-    desc: "TalkBack无障碍服务",
     brand: "Xiaomi",
   },
 ];
