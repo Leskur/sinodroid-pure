@@ -59,7 +59,7 @@ export function DeviceListCard({
       {/* 标题栏与操作 */}
       <div className="flex items-center justify-between min-h-[42px]">
         <div className="flex items-center gap-2">
-          <div className="bg-blue-500/10 p-2 rounded-lg text-blue-500 dark:text-blue-400">
+          <div className="bg-blue-500/10 p-2 rounded-md text-blue-500 dark:text-blue-400">
             <Smartphone className="w-5 h-5" />
           </div>
           <div>
@@ -104,7 +104,7 @@ export function DeviceListCard({
       </div>
 
       {/* 设备列表区域 */}
-      <div className="rounded-xl border border-border/40 bg-card/30 overflow-hidden">
+      <div className="rounded-lg border border-border/40 bg-card/30 overflow-hidden">
         {devices.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground/60 gap-3">
             <div className="bg-muted/50 p-4 rounded-full">
@@ -142,7 +142,7 @@ export function DeviceListCard({
                     {/* 图标 */}
                     <div
                       className={cn(
-                        "p-2.5 rounded-lg shrink-0 mr-4 transition-colors",
+                        "p-2.5 rounded-md shrink-0 mr-4 transition-colors",
                         isSelected
                           ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
                           : "bg-muted/50 text-muted-foreground",

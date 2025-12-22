@@ -54,7 +54,7 @@ export function DeviceInfoCard({
 }: DeviceInfoCardProps) {
   if (!selectedDevice) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-muted-foreground p-8 border-2 border-dashed border-muted rounded-xl bg-muted/5">
+      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-muted-foreground p-8 border-2 border-dashed border-muted rounded-lg bg-muted/5">
         <Smartphone className="w-12 h-12 mb-4 opacity-20" />
         <p className="text-base font-medium">未选择设备</p>
         <p className="text-sm opacity-60">请在左侧列表选择一个设备查看详情</p>
@@ -67,7 +67,7 @@ export function DeviceInfoCard({
       {/* 标题与操作栏 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg text-primary">
+          <div className="p-2 bg-primary/10 rounded-md text-primary">
             <Info className="w-5 h-5" />
           </div>
           <div>
@@ -117,7 +117,7 @@ export function DeviceInfoCard({
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* 核心概览 - 醒目的大字 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 dark:bg-blue-500/10">
+            <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/10 dark:bg-blue-500/10">
               <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
                 Android 版本
               </div>
@@ -128,7 +128,7 @@ export function DeviceInfoCard({
                 SDK {deviceInfo.sdkVersion}
               </div>
             </div>
-            <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/10 dark:bg-purple-500/10">
+            <div className="p-4 rounded-lg bg-purple-500/5 border border-purple-500/10 dark:bg-purple-500/10">
               <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">
                 内存 (RAM)
               </div>
@@ -139,7 +139,7 @@ export function DeviceInfoCard({
                 可用: 计算中...
               </div>
             </div>
-            <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 dark:bg-orange-500/10 col-span-2 md:col-span-2">
+            <div className="p-4 rounded-lg bg-orange-500/5 border border-orange-500/10 dark:bg-orange-500/10 col-span-2 md:col-span-2">
               <div className="text-xs text-orange-600 dark:text-orange-400 font-medium mb-1">
                 设备型号
               </div>

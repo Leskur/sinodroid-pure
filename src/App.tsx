@@ -588,6 +588,8 @@ function App() {
 
         {/* 右侧内容区域 */}
         <div className="flex-1 overflow-hidden flex flex-col">
+          {/* 自定义标题栏区域 - 拖拽区与窗口控制 */}
+
           {/* 内容区域 - 全屏容器 */}
           <div className="flex-1 overflow-hidden relative bg-background/50">
             {/* 预热覆盖层 - 保持不变 */}

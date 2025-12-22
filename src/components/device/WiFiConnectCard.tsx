@@ -126,7 +126,7 @@ export function WiFiConnectCard({
       {/* 标题 */}
       <div className="flex items-center justify-between min-h-[42px]">
         <div className="flex items-center gap-2">
-          <div className="bg-purple-500/10 p-2 rounded-lg text-purple-600 dark:text-purple-400">
+          <div className="bg-purple-500/10 p-2 rounded-md text-purple-600 dark:text-purple-400">
             <Wifi className="w-5 h-5" />
           </div>
           <div>
@@ -149,7 +149,7 @@ export function WiFiConnectCard({
       </div>
 
       {/* 内容区域容器 */}
-      <div className="rounded-xl border border-border/40 bg-card/30 p-4 space-y-4 h-full">
+      <div className="rounded-lg border border-border/40 bg-card/30 p-4 space-y-4 h-full">
         {/* 连接表单 */}
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -197,7 +197,7 @@ export function WiFiConnectCard({
               {history.map((item, index) => (
                 <div
                   key={index}
-                  className="group flex items-center justify-between p-2.5 rounded-lg border border-border/40 bg-background/50 hover:bg-muted/40 hover:border-border/60 transition-all cursor-pointer"
+                  className="group flex items-center justify-between p-2.5 rounded-md border border-border/40 bg-background/50 hover:bg-muted/40 hover:border-border/60 transition-all cursor-pointer"
                   onClick={() => fillFromHistory(item)}
                 >
                   <div className="flex items-center gap-3 overflow-hidden">

@@ -622,7 +622,7 @@ export function DebloatCard({
                   key={item.package}
                   onClick={() => handleSelect(item.package, !isSelected)}
                   className={`
-                      group relative flex flex-col gap-2 p-3 rounded-lg border cursor-pointer transition-all duration-200
+                      group relative flex flex-col gap-2 p-3 rounded-md border cursor-pointer transition-all duration-200
                       ${
                         isSelected
                           ? "bg-primary/5 border-primary/40 shadow-sm ring-1 ring-primary/10"
@@ -645,7 +645,7 @@ export function DebloatCard({
                   </div>
 
                   <div className="flex items-start gap-3 pr-6">
-                    <div className="shrink-0 rounded-lg overflow-hidden w-10 h-10">
+                    <div className="shrink-0 rounded-md overflow-hidden w-10 h-10">
                       <AppIcon package={item.package} size={40} />
                     </div>
                     <div className="flex flex-col min-w-0">
