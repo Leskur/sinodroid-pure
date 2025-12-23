@@ -1,5 +1,6 @@
 import { Github, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 export function AboutCard() {
   return (
@@ -29,25 +30,18 @@ export function AboutCard() {
 
         {/* Actions */}
         <div className="flex items-center gap-3 pt-4">
-          <a
-            href="https://github.com/Leskur/sinodroid-pure"
-            target="_blank"
-            rel="noreferrer"
+          <Button
+            className="gap-2 rounded-full px-6"
+            variant="outline"
+            onClick={() => openUrl("https://github.com/Leskur/sinodroid-pure")}
           >
-            <Button className="gap-2 rounded-full px-6" variant="outline">
-              <Github className="w-4 h-4" />
-              GitHub
-            </Button>
-          </a>
+            <Github className="w-4 h-4" />
+            GitHub
+          </Button>
           <Button
             variant="ghost"
             className="gap-2 rounded-full px-6"
-            onClick={() =>
-              window.open(
-                "https://github.com/Leskur/sinodroid-pure/issues",
-                "_blank"
-              )
-            }
+            onClick={() => openUrl("https://github.com/Leskur/sinodroid-pure/issues")}
           >
             反馈问题
           </Button>

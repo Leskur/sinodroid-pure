@@ -15,7 +15,10 @@ import {
   executeAdbCommand,
   type Device,
 } from "@/lib/adb";
-import { LoadingScreen } from "@/components/common/LoadingScreen";
+import {
+  LoadingScreen,
+  type LoadingStepKey,
+} from "@/components/common/LoadingScreen";
 import { ErrorScreen } from "@/components/common/ErrorScreen";
 import { Sidebar, type SidebarType } from "@/components/layout/Sidebar";
 import { StatusBar } from "@/components/layout/StatusBar";
@@ -31,6 +34,7 @@ import { AboutCard } from "@/components/about/AboutCard";
 
 function App() {
   const [initializing, setInitializing] = useState(true);
+  const [loadingStage, setLoadingStage] = useState<LoadingStepKey>("check");
   const [ready, setReady] = useState(false);
   const [preheating, setPreheating] = useState(true); // ADB 预热状态
 
@@ -66,12 +70,20 @@ function App() {
   };
 
   // 初始化 platform-tools
+  const adbInitializedRef = useRef(false);
+
   useEffect(() => {
+    // 防止 StrictMode 导致重复初始化
+    if (adbInitializedRef.current) return;
+    adbInitializedRef.current = true;
+
     async function init() {
       try {
+        setLoadingStage("check");
         const isReady = await isPlatformToolsReady();
 
         if (!isReady) {
+          setLoadingStage("setup");
           await initPlatformTools();
         }
 
@@ -84,24 +96,40 @@ function App() {
         addLog(`✅ ADB 工具初始化完成: ${version.split("\n")[0]}`);
 
         // 预热 ADB 服务器：在后台预启动 ADB 服务器，避免首次调用延迟
+        setLoadingStage("server");
+        addLog("🔄 正在预热 ADB 服务器 (后台进行)...");
+
+        // 预热 ADB 服务器：等待预热完成再进入主界面
+        setLoadingStage("server");
         addLog("🔄 正在预热 ADB 服务器...");
+
         try {
+          // 这里必须 await，确保“Loading”界面一直显示到 ADB 第一次响应为止（涵盖那7秒的冷启动）
           await getDevices();
           addLog("✅ ADB 服务器预热完成");
         } catch (e) {
+          // 即使没有设备或报错，也视为预热完成（只要 ADB 进程响应了就行）
           addLog(`⚠️ ADB 预热完成（无设备连接）: ${String(e)}`);
         } finally {
           setPreheating(false);
         }
+
+        setLoadingStage("ready");
+        // 稍微停顿一下展示完成状态 (800ms)
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        setInitializing(false);
       } catch (err) {
         console.error("[INIT] 初始化失败:", err);
         toast.error("初始化失败", { description: String(err) });
         addLog(`❌ 初始化失败: ${String(err)}`);
-      } finally {
         setInitializing(false);
       }
     }
-    init();
+
+    // 延迟 100ms 执行初始化，确保 LoadingScreen 先渲染出来，避免白屏
+    setTimeout(() => {
+      init();
+    }, 100);
   }, []);
 
   // 刷新设备列表
@@ -164,7 +192,13 @@ function App() {
   };
 
   // 自动检测设备插拔（带智能节流和缓存）
+  const autoDetectRunningRef = useRef(false);
+
   useEffect(() => {
+    // 防止 StrictMode 创建多个定时器
+    if (autoDetectRunningRef.current) return;
+    autoDetectRunningRef.current = true;
+
     let intervalId: NodeJS.Timeout;
     let previousDeviceCount = 0;
     let lastCheckTime = 0;
@@ -232,6 +266,7 @@ function App() {
     }
 
     return () => {
+      autoDetectRunningRef.current = false;
       if (intervalId) {
         clearInterval(intervalId);
       }
@@ -527,16 +562,13 @@ function App() {
 
   // 初始化中
   if (initializing) {
-    return <LoadingScreen />;
+    return <LoadingScreen currentStage={loadingStage} />;
   }
 
   // 初始化失败
   if (!ready) {
     return <ErrorScreen />;
   }
-
-  // 预热中状态 - 显示覆盖层
-  const isPreheatingOverlay = preheating && activeSidebar !== "log";
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
@@ -555,42 +587,6 @@ function App() {
 
           {/* 内容区域 - 全屏容器 */}
           <div className="flex-1 overflow-hidden relative bg-background/50">
-            {/* 预热覆盖层 - 保持不变 */}
-            {isPreheatingOverlay && (
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-500/20 mb-4">
-                    <svg
-                      className="animate-spin h-6 w-6 text-blue-400"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-bold text-foreground mb-2">
-                    正在预热 ADB 服务器
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    首次启动需要 3-5 秒，请稍候...
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* 关于页面 */}
             {activeSidebar === "about" && (
               <div className="h-full relative overflow-hidden">

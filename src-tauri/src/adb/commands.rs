@@ -25,15 +25,23 @@ pub struct Device {
 
 /// 初始化 platform-tools
 #[tauri::command]
-pub fn init_platform_tools(app: AppHandle) -> Result<(), String> {
-    installer::init_platform_tools(&app)
-        .map_err(|e| format!("Failed to initialize platform-tools: {}", e))
+pub async fn init_platform_tools(app: AppHandle) -> Result<(), String> {
+    spawn_blocking(move || {
+        installer::init_platform_tools(&app)
+            .map_err(|e| format!("Failed to initialize platform-tools: {}", e))
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
 }
 
 /// 检查 platform-tools 是否已安装
 #[tauri::command]
-pub fn is_platform_tools_ready(app: AppHandle) -> bool {
-    is_platform_tools_installed(&app)
+pub async fn is_platform_tools_ready(app: AppHandle) -> bool {
+    // 这是一个快速的文件系统检查，但为了保持 UI 极端流畅，我们也让它异步运行
+    let app_handle = app.clone();
+    spawn_blocking(move || is_platform_tools_installed(&app_handle))
+        .await
+        .unwrap_or(false)
 }
 
 /// 获取 ADB 版本（在后台线程执行）
@@ -110,7 +118,10 @@ pub async fn get_devices(app: AppHandle) -> Result<Vec<Device>, String> {
 
     // 总性能警告：超过 3 秒需要关注
     if duration.as_secs() > 3 {
-        eprintln!("[ADB] ⚠️ 性能警告: 总耗时 {:?}，建议检查 ADB 服务器状态", duration);
+        eprintln!(
+            "[ADB] ⚠️ 性能警告: 总耗时 {:?}，建议检查 ADB 服务器状态",
+            duration
+        );
     }
 
     Ok(result)
@@ -148,7 +159,10 @@ pub async fn execute_adb_command(app: AppHandle, args: Vec<String>) -> Result<St
 
     // 性能监控：执行时间过长时记录警告
     if duration.as_secs() > 3 {
-        eprintln!("[ADB] ⚠️ execute_adb_command 缓慢: {:?} - {:?}", args_clone, duration);
+        eprintln!(
+            "[ADB] ⚠️ execute_adb_command 缓慢: {:?} - {:?}",
+            args_clone, duration
+        );
     }
 
     Ok(result)
@@ -193,14 +207,17 @@ fn parse_devices(output: &str) -> Vec<Device> {
             // 判断连接类型：
             // WiFi: 包含冒号（如 192.168.1.100:5555）或以 ._adb-tls-connect._tcp 结尾
             // USB: 其他情况（设备序列号等）
-            let connection_type = if device_id.contains(':') || device_id.ends_with("._adb-tls-connect._tcp") {
-                DeviceConnectionType::Wifi
-            } else {
-                DeviceConnectionType::Usb
-            };
+            let connection_type =
+                if device_id.contains(':') || device_id.ends_with("._adb-tls-connect._tcp") {
+                    DeviceConnectionType::Wifi
+                } else {
+                    DeviceConnectionType::Usb
+                };
 
-            eprintln!("[DEBUG] Parsed device: id={}, status={}, connection_type={:?}",
-                      device_id, status, connection_type);
+            eprintln!(
+                "[DEBUG] Parsed device: id={}, status={}, connection_type={:?}",
+                device_id, status, connection_type
+            );
 
             devices.push(Device {
                 id: device_id,
