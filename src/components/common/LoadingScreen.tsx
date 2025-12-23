@@ -1,12 +1,5 @@
-import { useEffect, useState } from "react";
-import {
-  Check,
-  Loader2,
-  Server,
-  Settings,
-  ShieldCheck,
-  Rocket,
-} from "lucide-react";
+import { Server, Settings, ShieldCheck, Rocket } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export type LoadingStepKey = "check" | "setup" | "server" | "ready";
 
@@ -52,15 +45,6 @@ export function LoadingScreen({
 
   // 计算当前步骤的索引和总进度
   const currentStepIndex = steps.findIndex((s) => s.id === currentStage);
-  // 进度计算：基础进度(index/length) + 微调
-  const baseProgress = ((currentStepIndex + 1) / steps.length) * 100;
-
-  // 使用平滑过渡的进度显示
-  const [displayProgress, setDisplayProgress] = useState(0);
-
-  useEffect(() => {
-    setDisplayProgress(baseProgress);
-  }, [baseProgress]);
 
   const currentStepData = steps[currentStepIndex] || steps[0];
   const CurrentIcon = currentStepData.icon;
@@ -72,12 +56,33 @@ export function LoadingScreen({
 
       {/* 主体卡片 - 极致纯净版 (Ultimate Pure) */}
       <div className="relative z-10 flex flex-col items-center text-center">
-        {/* 1. Logo 核心视觉 */}
+        {/* 1. Logo 核心视觉 - 氛围感状态 (Ambient Status) */}
         <div className="relative group mb-8 animate-in zoom-in-90 fade-in duration-700 ease-out">
-          <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-          <div className="relative w-24 h-24 bg-gradient-to-br from-background to-muted rounded-[2rem] border border-border/40 shadow-2xl flex items-center justify-center transform transition-transform duration-700 hover:scale-105">
+          {/* 呼吸光晕：加载时呼吸，就绪时绽放 */}
+          <div
+            className={cn(
+              "absolute inset-0 blur-2xl rounded-full transition-all duration-1000",
+              currentStage === "ready"
+                ? "bg-green-500/20 opacity-50 scale-110"
+                : "bg-primary/20 opacity-30 animate-pulse"
+            )}
+          />
+
+          <div
+            className={cn(
+              "relative w-24 h-24 bg-gradient-to-br from-background to-muted rounded-[2rem] border shadow-2xl flex items-center justify-center transform transition-transform duration-700 hover:scale-105",
+              currentStage === "ready"
+                ? "border-green-500/20"
+                : "border-border/40"
+            )}
+          >
             <svg
-              className="w-10 h-10 text-primary drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+              className={cn(
+                "w-10 h-10 transition-colors duration-700",
+                currentStage === "ready"
+                  ? "text-green-500 drop-shadow-[0_0_15px_rgba(34,197,94,0.4)]"
+                  : "text-primary drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+              )}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -89,19 +94,6 @@ export function LoadingScreen({
                 d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-          </div>
-
-          {/* 状态指示徽标 - 仅在 Logo 上显示微小的动态反馈 */}
-          <div className="absolute -bottom-2 -right-2 transition-all duration-500">
-            {currentStage === "ready" ? (
-              <div className="w-7 h-7 bg-background rounded-full flex items-center justify-center border border-border shadow-sm animate-in zoom-in">
-                <Check className="w-4 h-4 text-green-500" />
-              </div>
-            ) : (
-              <div className="w-7 h-7 bg-background rounded-full flex items-center justify-center border border-border shadow-sm animate-in zoom-in">
-                <Loader2 className="w-4 h-4 text-primary animate-spin" />
-              </div>
-            )}
           </div>
         </div>
 
@@ -117,17 +109,27 @@ export function LoadingScreen({
             <div className="flex items-center gap-2.5 text-sm text-muted-foreground/80 font-medium tracking-wide">
               <CurrentIcon className="w-3.5 h-3.5 text-primary/70" />
               <span>{currentStepData.description}</span>
-              <span className="font-mono text-xs opacity-40 tabular-nums">
-                {Math.round(displayProgress)}%
-              </span>
             </div>
 
-            {/* 极简微型进度条 - 放在文字正下方作为装饰线 */}
-            <div className="h-0.5 w-24 bg-muted/40 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary/60 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${displayProgress}%` }}
-              />
+            {/* 自适应分段进度条 (Smart Segmented) */}
+            <div className="flex items-center gap-2 mt-2">
+              {steps.map((_, index) => {
+                const isActive = index === currentStepIndex;
+                const isCompleted = index < currentStepIndex;
+
+                return (
+                  <div
+                    key={index}
+                    className={cn(
+                      "h-1 rounded-full transition-all duration-500 ease-out",
+                      isActive
+                        ? "w-8 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"
+                        : "w-2 bg-primary/20 dark:bg-primary/30",
+                      isCompleted && "w-2.5 bg-primary/60 dark:bg-primary/70"
+                    )}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>
