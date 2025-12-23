@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Smartphone, Loader2 } from "lucide-react";
+import { getVersion } from "@tauri-apps/api/app";
 
 interface StatusBarProps {
   connectedCount: number;
@@ -15,6 +17,12 @@ export function StatusBar({
   loading,
   loadingText = "处理中...",
 }: StatusBarProps) {
+  const [appVersion, setAppVersion] = useState("");
+
+  useEffect(() => {
+    getVersion().then((v) => setAppVersion(v));
+  }, []);
+
   return (
     <div className="border-t bg-card/80 backdrop-blur-md h-9 flex items-center px-4 gap-4 text-[10px] font-medium select-none overflow-hidden text-muted-foreground">
       {/* 1. Device Section */}
@@ -78,7 +86,7 @@ export function StatusBar({
 
         {/* Version */}
         <div className="font-mono text-muted-foreground/40 tracking-widest font-normal">
-          v0.0.1
+          v{appVersion || "..."}
         </div>
       </div>
     </div>

@@ -1,8 +1,16 @@
+import { useEffect, useState } from "react";
 import { Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { getVersion } from "@tauri-apps/api/app";
 
 export function AboutCard() {
+  const [appVersion, setAppVersion] = useState("");
+
+  useEffect(() => {
+    getVersion().then((v) => setAppVersion(v));
+  }, []);
+
   return (
     <div className="flex flex-col gap-4 max-w-2xl mx-auto h-full justify-center items-center -mt-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col items-center text-center space-y-4">
@@ -41,7 +49,7 @@ export function AboutCard() {
             Sinodroid Pure
           </h1>
           <p className="text-sm font-medium text-muted-foreground/80">
-            v0.0.1 Beta
+            v{appVersion}
           </p>
         </div>
 

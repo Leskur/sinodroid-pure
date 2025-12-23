@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Server, Settings, ShieldCheck, Rocket } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getVersion } from "@tauri-apps/api/app";
 
 export type LoadingStepKey = "check" | "setup" | "server" | "ready";
 
@@ -15,6 +17,12 @@ export function LoadingScreen({
 }: {
   currentStage?: LoadingStepKey;
 }) {
+  const [appVersion, setAppVersion] = useState("");
+
+  useEffect(() => {
+    getVersion().then((v) => setAppVersion(v));
+  }, []);
+
   // 步骤定义
   const steps: LoadingStep[] = [
     {
@@ -153,7 +161,7 @@ export function LoadingScreen({
 
       {/* 底部版权/版本 */}
       <div className="absolute bottom-6 text-[10px] text-muted-foreground/40 font-mono tracking-widest uppercase">
-        Version 0.1.0 Beta
+        Version {appVersion || "..."}
       </div>
     </div>
   );
