@@ -18,11 +18,38 @@ export function Sidebar({
     <aside className="w-64 border-r bg-card/50 overflow-y-auto flex-shrink-0 [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden h-full sticky top-0 flex flex-col justify-between">
       <div className="p-4 space-y-4">
         {/* Logo 区域 */}
-        <div className="flex items-center gap-3" data-tauri-drag-region>
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-lg flex items-center justify-center">
-            <Smartphone className="w-6 h-6 text-white" />
+        <div
+          className="flex items-center gap-3 select-none"
+          data-tauri-drag-region
+        >
+          <div className="w-10 h-10 bg-gradient-to-br from-background to-muted rounded-xl border border-border/40 shadow-sm flex items-center justify-center">
+            <svg
+              className="w-5 h-5 drop-shadow-[0_0_8px_rgba(36,200,219,0.3)]"
+              fill="none"
+              stroke="url(#tauri-sidebar-gradient)"
+              viewBox="0 0 24 24"
+            >
+              <defs>
+                <linearGradient
+                  id="tauri-sidebar-gradient"
+                  x1="100%"
+                  y1="0%"
+                  x2="0%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#FFC131" />
+                  <stop offset="100%" stopColor="#24C8DB" />
+                </linearGradient>
+              </defs>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
+            </svg>
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+          <span className="text-lg font-bold bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-transparent">
             Sinodroid Pure
           </span>
         </div>

@@ -81,12 +81,28 @@ export function LoadingScreen({
                 "w-10 h-10 transition-colors duration-700",
                 currentStage === "ready"
                   ? "text-green-500 drop-shadow-[0_0_15px_rgba(34,197,94,0.4)]"
-                  : "text-primary drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+                  : "drop-shadow-[0_0_10px_rgba(36,200,219,0.4)]"
               )}
               fill="none"
-              stroke="currentColor"
+              stroke={
+                currentStage === "ready"
+                  ? "currentColor"
+                  : "url(#tauri-gradient)"
+              }
               viewBox="0 0 24 24"
             >
+              <defs>
+                <linearGradient
+                  id="tauri-gradient"
+                  x1="100%"
+                  y1="0%"
+                  x2="0%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#FFC131" />
+                  <stop offset="100%" stopColor="#24C8DB" />
+                </linearGradient>
+              </defs>
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
