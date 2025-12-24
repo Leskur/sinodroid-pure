@@ -1,27 +1,40 @@
 # Sinodroid Pure
 
+<div align="center">
+
+![Version](https://img.shields.io/github/v/release/Leskur/sinodroid-pure?style=flat-square&logo=github)
+![Build Status](https://img.shields.io/github/actions/workflow/status/Leskur/sinodroid-pure/release.yml?style=flat-square&logo=github-actions)
+![Platform](https://img.shields.io/badge/platform-win%20|%20linux%20|%20mac-gray?style=flat-square)
+![License](https://img.shields.io/github/license/Leskur/sinodroid-pure?style=flat-square&color=blue)
+
+</div>
+
 一个现代化的 Android 设备管理工具，专为中国安卓设备优化，支持 WiFi/USB 调试、设备信息查看、批量去广告等功能。
 
 ## ✨ 特性
 
 ### 🔧 设备管理
+
 - **自动设备检测**：实时监控 USB/WiFi 设备插拔
 - **WiFi 调试**：支持通过 IP 地址连接 WiFi 设备，自动保存连接历史
 - **设备断开**：一键断开设备连接
 - **详细信息展示**：全面的设备硬件和系统信息
 
 ### 📱 设备信息
+
 - 基础信息：型号、制造商、Android 版本、SDK 版本
 - 状态信息：电池、存储、内存、CPU、屏幕分辨率
 - 网络信息：WiFi 状态、网络名称、IP 地址
 - 系统信息：安全补丁、内核版本、构建版本、主板型号
 
 ### 🎯 批量去广告
+
 - 针对中国品牌预置的广告包一键清理
 - 支持小米、华为、OPPO、VIVO 等主流品牌
 - 实时操作日志反馈
 
 ### 🎨 界面设计
+
 - **现代化 UI**：基于 shadcn/ui 组件库
 - **深色模式**：自动跟随系统主题
 - **响应式布局**：适配不同窗口大小
@@ -92,6 +105,7 @@ sinodroid-pure/
 ## 🔧 技术栈
 
 ### 前端
+
 - **React 18** - UI 框架
 - **TypeScript** - 类型安全
 - **Tailwind CSS v4** - 样式系统
@@ -101,6 +115,7 @@ sinodroid-pure/
 - **next-themes** - 主题管理
 
 ### 后端
+
 - **Tauri v2** - 桌面应用框架
 - **Rust** - 系统级操作
 - **ADB** - Android 调试桥接
@@ -140,6 +155,7 @@ sinodroid-pure/
 ## 🎨 主题系统
 
 应用自动跟随系统主题：
+
 - **浅色模式**：明亮清爽
 - **深色模式**：护眼舒适
 
@@ -148,15 +164,18 @@ sinodroid-pure/
 ## 🔍 故障排除
 
 ### ADB 工具初始化失败
+
 - 确保已安装 Android SDK Platform Tools
 - 检查 PATH 环境变量是否包含 ADB
 
 ### WiFi 连接失败
+
 - 确保设备已开启 WiFi 调试
 - 检查设备和电脑在同一网络
 - 确认端口 5555 未被占用
 
 ### 设备信息获取失败
+
 - 部分信息需要 root 权限
 - 某些设备厂商可能限制部分接口
 
