@@ -1,11 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import {
-  Package,
-  Loader2,
-  Ban,
-  Check,
-  Search,
-} from "lucide-react";
+import { Package, Loader2, Ban, Check, Search, Cable } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,18 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import AppIcon from "@/components/AppIcon";
+
 import type { DeviceInfo } from "@/components/device/DeviceInfoCard";
 import { getAppName, getAppDesc } from "@/data/bloatwarePackages";
 import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 
+import { DebloatAppItem } from "./DebloatAppItem";
+import { ScannedApp } from "./types";
+
 // 扫描到的应用信息
-interface ScannedApp {
-  package: string;
-  name: string;
-  desc: string;
-  path: string;
-}
 
 interface DebloatCardProps {
   selectedDevice: string;
@@ -383,7 +374,7 @@ export function DebloatCard({
   return (
     <div className="h-full flex flex-col bg-background/50">
       {/* 顶部统一工具栏 */}
-      <div className="flex flex-col border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
+      <div className="flex flex-col border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 shrink-0 z-10 shadow-sm">
         {/* 第一行：标题与搜索 */}
         <div className="flex items-center justify-between px-6 py-3 gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -446,7 +437,7 @@ export function DebloatCard({
         </div>
 
         {/* 第二行：批量操作栏 */}
-        <div className="flex items-center justify-between px-6 py-2 bg-muted/20 border-t border-border/40 min-h-[44px]">
+        <div className="flex items-center justify-between px-6 py-2.5 bg-muted/30 border-t border-border/50 min-h-[48px]">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Checkbox
@@ -508,7 +499,17 @@ export function DebloatCard({
 
       {/* 主内容区域 - 滚动容器 */}
       <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
-        {filteredPackages.length === 0 ? (
+        {!selectedDevice ? (
+          <div className="h-full flex flex-col items-center justify-center -mt-8 text-muted-foreground/50 animate-in fade-in zoom-in-95 duration-300">
+            <div className="p-4 rounded-full bg-muted/40 mb-4 ring-1 ring-border/50">
+              <Cable className="w-8 h-8 opacity-40" />
+            </div>
+            <p className="text-sm font-medium">请先连接设备</p>
+            <p className="text-xs text-muted-foreground/40 mt-1.5 max-w-[200px] text-center leading-relaxed">
+              连接您的 Android 设备并开启 USB 调试以管理应用
+            </p>
+          </div>
+        ) : filteredPackages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center -mt-8 text-muted-foreground/50">
             <div className="p-4 rounded-full bg-muted/40 mb-4">
               <Search className="w-8 h-8 opacity-40" />
@@ -518,79 +519,19 @@ export function DebloatCard({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-12">
             {filteredPackages.map((item) => {
               const isInstalled = installedMap[item.package];
               const isSelected = selectedPackages.has(item.package);
 
               return (
-                <div
+                <DebloatAppItem
                   key={item.package}
-                  onClick={() => handleSelect(item.package, !isSelected)}
-                  className={`
-                      group relative flex items-center gap-4 p-3 rounded-xl border cursor-pointer transition-all duration-300
-                      ${
-                        isSelected
-                          ? "bg-primary/5 border-primary shadow-[0_0_0_1px_hsl(var(--primary))]"
-                          : "bg-card border-border/40 hover:border-primary/30 hover:shadow-sm"
-                      }
-                  `}
-                >
-                  {/* 图标容器 + 选中状态角标 */}
-                  <div className="relative shrink-0">
-                    <div
-                      className={`rounded-lg overflow-hidden transition-all duration-300 w-11 h-11 shadow-sm ${
-                        !isInstalled
-                          ? "grayscale contrast-75 opacity-60 bg-muted"
-                          : "bg-background"
-                      }`}
-                    >
-                      <AppIcon package={item.package} size={44} />
-                    </div>
-
-                    {/* 选中时的角标 (Futuristic Badge) */}
-                    <div
-                      className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md ring-2 ring-background transition-all duration-300 z-10 ${
-                        isSelected
-                          ? "scale-100 opacity-100"
-                          : "scale-0 opacity-0"
-                      }`}
-                    >
-                      <Check className="w-3 h-3" strokeWidth={4} />
-                    </div>
-                  </div>
-
-                  {/* 信息列 */}
-                  <div
-                    className={`flex flex-col min-w-0 flex-1 transition-opacity duration-300 ${
-                      !isInstalled ? "opacity-60" : ""
-                    }`}
-                  >
-                    {/* 标题 */}
-                    <span className="text-sm font-semibold text-foreground truncate leading-tight">
-                      {item.name}
-                    </span>
-
-                    {/* 包名 */}
-                    <span className="text-[10px] text-muted-foreground/60 font-mono truncate mt-0.5">
-                      {item.package}
-                    </span>
-
-                    {/* 描述 */}
-                    {item.desc && (
-                      <p className="text-[10px] text-muted-foreground/50 line-clamp-1 mt-0.5">
-                        {item.desc}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* 已禁用状态指示 (右侧背景水印) */}
-                  {!isInstalled && (
-                    <div className="absolute right-3 opacity-[0.08] pointer-events-none grayscale">
-                      <Ban className="w-10 h-10" />
-                    </div>
-                  )}
-                </div>
+                  item={item}
+                  isInstalled={isInstalled}
+                  isSelected={isSelected}
+                  onToggle={() => handleSelect(item.package, !isSelected)}
+                />
               );
             })}
           </div>
