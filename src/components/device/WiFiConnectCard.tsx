@@ -147,7 +147,7 @@ export function WiFiConnectCard({
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Input
-              placeholder="IP 地址 (如: 192.168.1.5)"
+              placeholder="IP 地址"
               value={ip}
               onChange={(e) => setIp(e.target.value)}
               disabled={connecting}
@@ -156,16 +156,12 @@ export function WiFiConnectCard({
           </div>
           <div className="relative w-24">
             <Input
-              placeholder="5555"
+              placeholder="端口"
               value={port}
               onChange={(e) => setPort(e.target.value)}
               disabled={connecting}
-              className="bg-muted/50 focus-visible:bg-background border-muted-foreground/20 text-center h-9"
-              title="端口号 (默认 5555)"
+              className="bg-muted/50 focus-visible:bg-background border-muted-foreground/20  h-9"
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none opacity-50">
-              PORT
-            </div>
           </div>
           <Button
             onClick={connectWiFi}
