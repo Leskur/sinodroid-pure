@@ -52,7 +52,7 @@ export function AboutCard() {
         {/* 标题 & 版本 */}
         <div className="mt-8 text-center space-y-3">
           <h1 className="text-4xl font-extrabold tracking-tight">
-            <span className="text-foreground">SinoDroid</span>{" "}
+            <span className="text-foreground">Sinodroid</span>{" "}
             <span className="font-light text-sky-500">Pure</span>
           </h1>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/50 border border-border/50 backdrop-blur-sm">

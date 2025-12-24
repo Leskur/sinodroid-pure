@@ -54,7 +54,7 @@ export function Sidebar({
           <div className="flex flex-col justify-center">
             <div className="flex items-baseline">
               <span className="text-[16px] font-black tracking-tighter text-foreground">
-                SinoDroid
+                Sinodroid
               </span>
               <span className="text-[16px] font-extralight tracking-tight text-sky-500 ml-1.5 opacity-90">
                 Pure
