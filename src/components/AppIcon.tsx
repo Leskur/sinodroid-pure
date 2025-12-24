@@ -25,7 +25,7 @@ const AppIcon: React.FC<AppIconProps> = ({ package: pkg, size = 40 }) => {
 
     // 特殊处理小米/MIUI 相关
     if (lowerPkg.includes('miui')) {
-      return 'MUI';
+      return 'MU';
     }
     if (lowerPkg.includes('xiaomi')) {
       return 'MI';
