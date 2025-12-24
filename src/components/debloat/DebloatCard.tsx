@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Package, Loader2, Ban, Check, Search, Cable } from "lucide-react";
+import { Package, Loader2, Ban, Check, Search, Cable, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import type { DeviceInfo } from "@/components/device/DeviceInfoCard";
 import { getAppName, getAppDesc } from "@/data/bloatwarePackages";
@@ -30,7 +31,7 @@ interface DebloatCardProps {
   deviceInfo: DeviceInfo | null;
 }
 
-type SortType = "name-asc" | "name-desc" | "status-enabled" | "status-disabled";
+type SortType = "name-asc" | "name-desc" | "package-asc" | "package-desc";
 
 export function DebloatCard({
   selectedDevice,
@@ -62,9 +63,22 @@ export function DebloatCard({
     description: "",
   });
 
+  // 状态筛选类型
+  type FilterStatus = "all" | "enabled" | "disabled";
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+
   // 过滤和排序
   const filteredPackages = useMemo(() => {
     let result = [...scannedApps];
+
+    // 1. 状态筛选
+    if (filterStatus === "enabled") {
+      result = result.filter((item) => installedMap[item.package] === true);
+    } else if (filterStatus === "disabled") {
+      result = result.filter((item) => installedMap[item.package] === false);
+    }
+
+    // 2. 搜索过滤
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -75,26 +89,24 @@ export function DebloatCard({
           item.path.toLowerCase().includes(query)
       );
     }
+
+    // 3. 排序
     result.sort((a, b) => {
       switch (sortType) {
         case "name-asc":
           return a.name.localeCompare(b.name, "zh-CN");
         case "name-desc":
           return b.name.localeCompare(a.name, "zh-CN");
-        case "status-enabled":
-          const aEnabled = installedMap[a.package] ? 1 : 0;
-          const bEnabled = installedMap[b.package] ? 1 : 0;
-          return bEnabled - aEnabled || a.name.localeCompare(b.name, "zh-CN");
-        case "status-disabled":
-          const aDisabled = installedMap[a.package] ? 0 : 1;
-          const bDisabled = installedMap[b.package] ? 0 : 1;
-          return bDisabled - aDisabled || a.name.localeCompare(b.name, "zh-CN");
+        case "package-asc":
+          return a.package.localeCompare(b.package);
+        case "package-desc":
+          return b.package.localeCompare(a.package);
         default:
           return 0;
       }
     });
     return result;
-  }, [scannedApps, searchQuery, sortType, installedMap]);
+  }, [scannedApps, searchQuery, sortType, installedMap, filterStatus]);
 
   const stats = useMemo(() => {
     const total = scannedApps.length;
@@ -375,64 +387,104 @@ export function DebloatCard({
     <div className="h-full flex flex-col bg-background/50">
       {/* 顶部统一工具栏 */}
       <div className="flex flex-col border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 shrink-0 z-10 shadow-sm">
-        {/* 第一行：标题与搜索 */}
-        <div className="flex items-center justify-between px-6 py-3 gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="p-2 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
-              <Package className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col truncate">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold leading-none">
-                  内置应用管理
-                </span>
-                {detectedBrand && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 font-medium tracking-wide">
-                    {detectedBrand}
-                  </span>
-                )}
+        <div className="flex flex-col gap-4 px-6 py-4">
+          {/* 第一行：标题 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+                <Package className="w-5 h-5" />
               </div>
-              <span className="text-[10px] text-muted-foreground mt-0.5 font-mono truncate">
-                {stats.total} 个应用 · {stats.disabled} 已禁用
-              </span>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold leading-none text-foreground/90">
+                    应用管理
+                  </span>
+                  {detectedBrand && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 font-medium tracking-wide shadow-sm ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20">
+                      {detectedBrand}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] text-muted-foreground/60 mt-1 font-mono">
+                  Manage system applications
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 flex-1 justify-end max-w-xl">
-            {/* 搜索框 */}
-            <div className="relative w-full max-w-xs group">
-              <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/70 group-hover:text-primary transition-colors" />
-              <Input
-                placeholder="搜索应用名称或包名..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-8 pl-8 text-xs bg-muted/40 border-muted-foreground/20 focus-visible:bg-background transition-all"
-              />
-            </div>
-
-            {/* 排序 */}
-            <Select
-              value={sortType}
-              onValueChange={(v) => setSortType(v as SortType)}
+          {/* 第二行：控制台 (Tabs + 搜索) */}
+          <div className="flex items-center justify-between gap-4">
+            {/* 左侧：筛选 Tabs */}
+            <Tabs
+              value={filterStatus}
+              onValueChange={(v) => setFilterStatus(v as FilterStatus)}
+              className="h-8"
             >
-              <SelectTrigger className="h-8 w-[110px] text-xs bg-muted/40 border-muted-foreground/20">
-                <SelectValue placeholder="排序" />
-              </SelectTrigger>
-              <SelectContent align="end">
-                <SelectItem value="name-asc" className="text-xs">
-                  名称 A-Z
-                </SelectItem>
-                <SelectItem value="name-desc" className="text-xs">
-                  名称 Z-A
-                </SelectItem>
-                <SelectItem value="status-enabled" className="text-xs">
-                  已启用优先
-                </SelectItem>
-                <SelectItem value="status-disabled" className="text-xs">
-                  已禁用优先
-                </SelectItem>
-              </SelectContent>
-            </Select>
+              <TabsList className="h-8 w-auto bg-muted/60 p-1 gap-1 shadow-sm border border-border/20">
+                <TabsTrigger
+                  value="all"
+                  className="h-6 text-[10px] px-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                >
+                  全部 {stats.total}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="enabled"
+                  className="h-6 text-[10px] px-3 data-[state=active]:bg-background data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400 data-[state=active]:shadow-sm transition-all"
+                >
+                  启用 {stats.enabled}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="disabled"
+                  className="h-6 text-[10px] px-3 data-[state=active]:bg-background data-[state=active]:text-red-600 dark:data-[state=active]:text-red-400 data-[state=active]:shadow-sm transition-all"
+                >
+                  禁用 {stats.disabled}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            {/* 右侧：搜索与排序 */}
+            <div className="flex items-center gap-2">
+              <div className="relative w-48 lg:w-64 group">
+                <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                <Input
+                  placeholder="搜索应用..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-8 pl-8 pr-8 text-xs bg-muted/40 border-muted-foreground/20 focus-visible:bg-background focus-visible:ring-1 transition-all"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors p-0.5 rounded-full hover:bg-muted"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+
+              <Select
+                value={sortType}
+                onValueChange={(v) => setSortType(v as SortType)}
+              >
+                <SelectTrigger className="h-8 w-[100px] text-xs bg-muted/40 border-muted-foreground/20 px-2.5">
+                  <SelectValue placeholder="排序" />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  <SelectItem value="name-asc" className="text-xs">
+                    名称 A-Z
+                  </SelectItem>
+                  <SelectItem value="name-desc" className="text-xs">
+                    名称 Z-A
+                  </SelectItem>
+                  <SelectItem value="package-asc" className="text-xs">
+                    包名 A-Z
+                  </SelectItem>
+                  <SelectItem value="package-desc" className="text-xs">
+                    包名 Z-A
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 

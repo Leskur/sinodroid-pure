@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Github } from "lucide-react";
+import { Github, Zap, Shield, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { getVersion } from "@tauri-apps/api/app";
@@ -12,67 +12,78 @@ export function AboutCard() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-4 max-w-2xl mx-auto h-full justify-center items-center -mt-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col items-center text-center space-y-4">
-        {/* Logo */}
-        <div className="w-24 h-24 bg-gradient-to-br from-background to-muted rounded-[2rem] border border-border/40 shadow-2xl flex items-center justify-center transform transition-transform hover:scale-105 duration-500">
-          <svg
-            className="w-10 h-10 drop-shadow-[0_0_15px_rgba(36,200,219,0.3)]"
-            fill="none"
-            stroke="url(#tauri-about-gradient)"
-            viewBox="0 0 24 24"
-          >
-            <defs>
-              <linearGradient
-                id="tauri-about-gradient"
-                x1="100%"
-                y1="0%"
-                x2="0%"
-                y2="100%"
-              >
-                <stop offset="0%" stopColor="#FFC131" />
-                <stop offset="100%" stopColor="#24C8DB" />
-              </linearGradient>
-            </defs>
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
+    <div className="flex flex-col h-full w-full bg-background/50 relative overflow-hidden">
+      {/* 背景装饰光 */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
+
+      <div className="flex-1 flex flex-col items-center justify-center -mt-10 z-10 animate-in fade-in zoom-in-95 duration-700">
+        {/* Logo 区域 */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full group-hover:bg-primary/30 transition-all duration-1000 opacity-60" />
+          <div className="relative w-32 h-32 bg-gradient-to-br from-background via-muted/30 to-muted/80 rounded-[2.5rem] border border-white/20 shadow-2xl flex items-center justify-center transform transition-transform duration-500 hover:scale-[1.02] hover:-rotate-1">
+            <svg
+              className="w-16 h-16 drop-shadow-[0_0_20px_rgba(255,193,49,0.4)]"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <defs>
+                <linearGradient
+                  id="about-logo-gradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#FFC131" />
+                  <stop offset="100%" stopColor="#FB923C" />
+                </linearGradient>
+              </defs>
+              <path
+                stroke="url(#about-logo-gradient)"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+              />
+            </svg>
+          </div>
         </div>
 
-        {/* Title & Version */}
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
-            Sinodroid Pure
+        {/* 标题 & 版本 */}
+        <div className="mt-8 text-center space-y-3">
+          <h1 className="text-4xl font-extrabold tracking-tight">
+            <span className="bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
+              Sinodroid
+            </span>{" "}
+            <span className="text-primary/90">Pure</span>
           </h1>
-          <p className="text-sm font-medium text-muted-foreground/80">
-            v{appVersion}
-          </p>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/50 border border-border/50 backdrop-blur-sm">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)] animate-pulse" />
+            <span className="text-xs font-mono font-medium text-muted-foreground">
+              v{appVersion || "0.0.0"}
+            </span>
+          </div>
         </div>
 
-        {/* Description */}
-        <p className="text-muted-foreground max-w-sm leading-relaxed">
-          一个简洁、高效的 Android 设备管理工具。
-          <br />
-          旨在提供纯净的去臃肿与系统管理体验。
-        </p>
+        {/* 特性展示 */}
+        <div className="grid grid-cols-3 gap-6 mt-12 w-full max-w-lg px-4">
+          <FeatureItem icon={Zap} title="极致精简" desc="Remove Bloatware" />
+          <FeatureItem icon={Shield} title="隐私保护" desc="Enhanced Privacy" />
+          <FeatureItem icon={Smartphone} title="设备掌控" desc="Full Control" />
+        </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-3 pt-4">
+        {/* 按钮组 */}
+        <div className="flex items-center gap-4 mt-12">
           <Button
-            className="gap-2 rounded-full px-6"
-            variant="outline"
+            className="gap-2 rounded-full px-8 h-10 shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all active:scale-95"
             onClick={() => openUrl("https://github.com/Leskur/sinodroid-pure")}
           >
             <Github className="w-4 h-4" />
             GitHub
           </Button>
           <Button
-            variant="ghost"
-            className="gap-2 rounded-full px-6"
+            variant="outline"
+            className="gap-2 rounded-full px-8 h-10 border-foreground/10 hover:bg-muted/50 transition-all active:scale-95"
             onClick={() =>
               openUrl("https://github.com/Leskur/sinodroid-pure/issues")
             }
@@ -82,14 +93,38 @@ export function AboutCard() {
         </div>
       </div>
 
-      {/* Footer info */}
-      <div className="absolute bottom-8 text-center space-y-2">
-        <p className="text-xs text-muted-foreground/40">
-          Built with Tauri + React + Shadcn UI
+      {/* Footer */}
+      <div className="absolute bottom-6 left-0 right-0 text-center space-y-1.5">
+        <p className="text-[10px] text-muted-foreground/30 font-medium tracking-widest uppercase">
+          Designed for Perfectionists
         </p>
-        <p className="text-[10px] text-muted-foreground/30">
-          © {new Date().getFullYear()} Leskur. All rights reserved.
+        <p className="text-[10px] text-muted-foreground/20 font-mono">
+          © {new Date().getFullYear()} Leskur · Open Source
         </p>
+      </div>
+    </div>
+  );
+}
+
+function FeatureItem({
+  icon: Icon,
+  title,
+  desc,
+}: {
+  icon: any;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="flex flex-col items-center text-center gap-2 group cursor-default">
+      <div className="p-3 rounded-2xl bg-muted/30 border border-transparent group-hover:border-primary/10 group-hover:bg-primary/5 transition-all duration-300">
+        <Icon className="w-5 h-5 text-muted-foreground/70 group-hover:text-primary transition-colors" />
+      </div>
+      <div className="space-y-0.5">
+        <h3 className="text-sm font-semibold text-foreground/80 group-hover:text-foreground transition-colors">
+          {title}
+        </h3>
+        <p className="text-[10px] text-muted-foreground/50">{desc}</p>
       </div>
     </div>
   );
