@@ -1,8 +1,12 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use std::process::Command;
 use tauri::AppHandle;
 use tokio::task::spawn_blocking;
+
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 
 use super::{get_adb_path, installer, is_platform_tools_installed};
 
@@ -21,6 +25,13 @@ pub struct Device {
     pub status: String,
     #[serde(rename = "connectionType")]
     pub connection_type: DeviceConnectionType,
+}
+
+fn create_adb_command(path: &Path) -> Command {
+    let mut command = Command::new(path);
+    #[cfg(target_os = "windows")]
+    command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+    command
 }
 
 /// 初始化 platform-tools
@@ -50,7 +61,7 @@ pub async fn get_adb_version(app: AppHandle) -> Result<String, String> {
     let adb_path = get_adb_path(&app).map_err(|e| format!("Failed to get adb path: {}", e))?;
 
     let result = spawn_blocking(move || {
-        let output = Command::new(&adb_path)
+        let output = create_adb_command(&adb_path)
             .arg("version")
             .output()
             .map_err(|e| format!("Failed to execute adb: {}", e))?;
@@ -82,7 +93,7 @@ pub async fn get_devices(app: AppHandle) -> Result<Vec<Device>, String> {
     }
 
     let result = spawn_blocking(move || {
-        let output = Command::new(&adb_path)
+        let output = create_adb_command(&adb_path)
             .arg("devices")
             .output()
             .map_err(|e| format!("Failed to execute adb: {}", e))?;
@@ -138,7 +149,7 @@ pub async fn execute_adb_command(app: AppHandle, args: Vec<String>) -> Result<St
 
     // 使用 spawn_blocking 在后台线程执行同步操作
     let result = spawn_blocking(move || {
-        let output = Command::new(&adb_path)
+        let output = create_adb_command(&adb_path)
             .args(&args)
             .output()
             .map_err(|e| format!("Failed to execute adb: {}", e))?;
@@ -174,7 +185,7 @@ pub fn kill_adb_server(app: &AppHandle) -> Result<(), String> {
     let adb_path = get_adb_path(app).map_err(|e| format!("Failed to get adb path: {}", e))?;
 
     // 执行 adb kill-server 命令
-    let output = Command::new(&adb_path)
+    let output = create_adb_command(&adb_path)
         .arg("kill-server")
         .output()
         .map_err(|e| format!("Failed to execute adb kill-server: {}", e))?;
