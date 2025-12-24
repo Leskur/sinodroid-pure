@@ -22,27 +22,27 @@ export function Sidebar({
           data-tauri-drag-region
         >
           <div className="relative group">
-            <div className="absolute inset-0 bg-blue-500/20 rounded-xl blur-md group-hover:blur-lg transition-all duration-500 opacity-50" />
-            <div className="relative w-10 h-10 bg-gradient-to-br from-background via-blue-500/5 to-muted rounded-xl border border-blue-500/10 shadow-sm flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0 bg-cyan-500/20 rounded-xl blur-md group-hover:blur-lg transition-all duration-500 opacity-50" />
+            <div className="relative w-10 h-10 bg-gradient-to-br from-background via-cyan-500/5 to-muted rounded-xl border border-cyan-500/10 shadow-sm flex items-center justify-center overflow-hidden">
               <svg
-                className="w-5 h-5 drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]"
+                className="w-5 h-5 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]"
                 fill="none"
                 viewBox="0 0 24 24"
               >
                 <defs>
                   <linearGradient
-                    id="logo-blue"
+                    id="logo-glacial"
                     x1="0%"
                     y1="0%"
                     x2="100%"
                     y2="100%"
                   >
                     <stop offset="0%" stopColor="#22d3ee" />
-                    <stop offset="100%" stopColor="#3b82f6" />
+                    <stop offset="100%" stopColor="#0ea5e9" />
                   </linearGradient>
                 </defs>
                 <path
-                  stroke="url(#logo-blue)"
+                  stroke="url(#logo-glacial)"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2.5}
@@ -56,7 +56,7 @@ export function Sidebar({
               <span className="text-[16px] font-black tracking-tighter text-foreground">
                 SinoDroid
               </span>
-              <span className="text-[16px] font-extralight tracking-tight text-blue-500 ml-1.5 opacity-90">
+              <span className="text-[16px] font-extralight tracking-tight text-sky-500 ml-1.5 opacity-90">
                 Pure
               </span>
             </div>

@@ -13,33 +13,33 @@ export function AboutCard() {
 
   return (
     <div className="flex flex-col h-full w-full bg-background/50 relative overflow-hidden">
-      {/* 背景装饰光 (Cool Blue) */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-blue-500/5 blur-[100px] rounded-full pointer-events-none" />
+      {/* 背景装饰光 (Glacial Ice) */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-cyan-500/5 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="flex-1 flex flex-col items-center justify-center -mt-10 z-10 animate-in fade-in zoom-in-95 duration-700">
         {/* Logo 区域 */}
         <div className="relative group">
-          <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full group-hover:bg-blue-500/30 transition-all duration-1000 opacity-60" />
-          <div className="relative w-32 h-32 bg-gradient-to-br from-background via-blue-500/5 to-muted/80 rounded-[2.5rem] border border-blue-500/20 shadow-2xl flex items-center justify-center transform transition-transform duration-500 hover:scale-[1.02] hover:-rotate-1">
+          <div className="absolute inset-0 bg-cyan-500/20 blur-2xl rounded-full group-hover:bg-cyan-500/30 transition-all duration-1000 opacity-60" />
+          <div className="relative w-32 h-32 bg-gradient-to-br from-background via-cyan-500/5 to-muted/80 rounded-[2.5rem] border border-cyan-500/20 shadow-2xl flex items-center justify-center transform transition-transform duration-500 hover:scale-[1.02] hover:-rotate-1">
             <svg
-              className="w-16 h-16 drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+              className="w-16 h-16 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]"
               fill="none"
               viewBox="0 0 24 24"
             >
               <defs>
                 <linearGradient
-                  id="about-logo-gradient"
+                  id="about-logo-glacial"
                   x1="0%"
                   y1="0%"
                   x2="100%"
                   y2="100%"
                 >
                   <stop offset="0%" stopColor="#22d3ee" />
-                  <stop offset="100%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#0ea5e9" />
                 </linearGradient>
               </defs>
               <path
-                stroke="url(#about-logo-gradient)"
+                stroke="url(#about-logo-glacial)"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
@@ -53,7 +53,7 @@ export function AboutCard() {
         <div className="mt-8 text-center space-y-3">
           <h1 className="text-4xl font-extrabold tracking-tight">
             <span className="text-foreground">SinoDroid</span>{" "}
-            <span className="font-light text-blue-500">Pure</span>
+            <span className="font-light text-sky-500">Pure</span>
           </h1>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/50 border border-border/50 backdrop-blur-sm">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)] animate-pulse" />
