@@ -1,38 +1,49 @@
-import { RefreshCw, Copy, Loader2, MonitorSmartphone, Info, Battery, Wifi, HardDrive, MemoryStick, Cpu, Shield, Terminal, Activity, Network, Smartphone, CircuitBoard, GitBranch, Box, Server, Cpu as CpuIcon, Smartphone as AndroidIcon } from "lucide-react";
+import {
+  RefreshCw,
+  Copy,
+  Loader2,
+  MonitorSmartphone,
+  Info,
+  HardDrive,
+  Cpu,
+  Shield,
+  Terminal,
+  Smartphone,
+  CircuitBoard,
+  GitBranch,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
 export interface DeviceInfo {
   // 基础信息
   model: string;
   manufacturer: string;
+  brand: string; // 品牌 - 用于过滤广告包
   androidVersion: string;
   sdkVersion: string;
   serialNumber: string;
 
-  // 状态信息
-  battery: string;
+  // 存储信息
   storage: string;
+
+  // 硬件信息
   ram: string;
   cpu: string;
   resolution: string;
-  wifi: string;
-  wifiSsid: string;         // WiFi 名称
 
-  // 新增信息（按重要程度排序）
-  ipAddress: string;        // IP 地址 - 高重要性
-  securityPatch: string;    // 安全补丁 - 高重要性
-  kernelVersion: string;    // 内核版本 - 中重要性
-  buildNumber: string;      // 构建版本 - 中重要性
-  board: string;            // 主板型号 - 低重要性
+  // 系统信息
+  securityPatch: string; // 安全补丁
+  kernelVersion: string; // 内核版本
+  buildNumber: string; // 构建版本
+  board: string; // 主板型号
 }
 
 interface DeviceInfoCardProps {
   selectedDevice: string;
   loadingInfo: boolean;
   deviceInfo: DeviceInfo | null;
-  fetchDeviceInfo: (deviceId: string) => Promise<void>;
+  fetchDeviceInfo: (deviceId: string, forceRefresh?: boolean) => Promise<void>;
 }
 
 export function DeviceInfoCard({
@@ -41,192 +52,209 @@ export function DeviceInfoCard({
   deviceInfo,
   fetchDeviceInfo,
 }: DeviceInfoCardProps) {
+  if (!selectedDevice) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-muted-foreground p-8 border-2 border-dashed border-muted rounded-lg bg-muted/5">
+        <Smartphone className="w-12 h-12 mb-4 opacity-20" />
+        <p className="text-base font-medium">未选择设备</p>
+        <p className="text-sm opacity-60">请在左侧列表选择一个设备查看详情</p>
+      </div>
+    );
+  }
+
   return (
-    <Card className="lg:col-span-2">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6 pt-2">
+      {/* 标题与操作栏 */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-md text-primary">
+            <Info className="w-5 h-5" />
+          </div>
           <div>
-            <CardTitle className="text-lg">当前设备</CardTitle>
-            <CardDescription>设备详细信息展示</CardDescription>
+            <h3 className="text-base font-semibold leading-none">设备详情</h3>
+            <p className="text-xs text-muted-foreground mt-1 font-mono">
+              {selectedDevice}
+            </p>
           </div>
-          {selectedDevice && (
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => fetchDeviceInfo(selectedDevice)}
-                disabled={loadingInfo}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loadingInfo ? "animate-spin" : ""}`} />
-                刷新
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  navigator.clipboard.writeText(selectedDevice);
-                  toast.success("已复制到剪贴板");
-                }}
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
         </div>
-      </CardHeader>
-      <CardContent>
-        {!selectedDevice ? (
-          <div className="text-center py-8 text-muted-foreground">
-            请先选择设备
-          </div>
-        ) : loadingInfo ? (
-          <div className="flex items-center justify-center py-8 text-muted-foreground">
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            正在获取设备信息...
-          </div>
-        ) : deviceInfo ? (
-          <div className="space-y-4">
-            {/* 重要信息 - 第一行 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Smartphone className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">设备型号</div>
-                  <div className="font-medium text-sm truncate" title={deviceInfo.model}>
-                    {deviceInfo.model}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">制造商: {deviceInfo.manufacturer}</div>
-                </div>
-              </div>
 
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <AndroidIcon className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">Android 版本</div>
-                  <div className="font-medium text-sm">{deviceInfo.androidVersion}</div>
-                  <div className="text-xs text-muted-foreground mt-1">SDK: {deviceInfo.sdkVersion}</div>
-                </div>
-              </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => fetchDeviceInfo(selectedDevice, true)}
+            disabled={loadingInfo}
+            className="h-8 text-xs"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 mr-1.5 ${
+                loadingInfo ? "animate-spin" : ""
+              }`}
+            />
+            刷新信息
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              navigator.clipboard.writeText(selectedDevice);
+              toast.success("已复制序列号");
+            }}
+            title="复制序列号"
+            className="h-8 w-8 p-0"
+          >
+            <Copy className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
 
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Shield className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">安全补丁</div>
-                  <div className="font-medium text-sm">{deviceInfo.securityPatch}</div>
-                </div>
+      {loadingInfo ? (
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+          <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary/50" />
+          <p className="text-sm">正在读取设备指纹...</p>
+        </div>
+      ) : deviceInfo ? (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* 核心概览 - 醒目的大字 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/10 dark:bg-blue-500/10">
+              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
+                Android 版本
               </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Network className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">IP 地址</div>
-                  <div className="font-medium text-sm font-mono">{deviceInfo.ipAddress}</div>
-                </div>
+              <div className="text-2xl font-bold text-foreground">
+                {deviceInfo.androidVersion}
               </div>
-            </div>
-
-            {/* 状态信息 - 第二行 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Battery className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">电池状态</div>
-                  <div className="font-medium text-sm">{deviceInfo.battery}</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Wifi className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">WiFi 状态</div>
-                  <div className={`font-medium text-sm ${
-                    deviceInfo.wifi === "已连接" ? "text-green-600 dark:text-green-400" :
-                    deviceInfo.wifi === "正在连接" ? "text-yellow-600 dark:text-yellow-400" :
-                    deviceInfo.wifi === "关闭" ? "text-red-600 dark:text-red-400" :
-                    "text-muted-foreground"
-                  }`}>{deviceInfo.wifi}</div>
-                  {deviceInfo.wifi === "已连接" && (
-                    <div className="text-xs text-muted-foreground mt-1 flex gap-2 flex-wrap">
-                      {deviceInfo.wifiSsid && deviceInfo.wifiSsid !== "N/A" && (
-                        <span className="font-medium">{deviceInfo.wifiSsid}</span>
-                      )}
-                      {deviceInfo.ipAddress && deviceInfo.ipAddress !== "N/A" && (
-                        <span className="font-mono opacity-75">{deviceInfo.ipAddress}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <HardDrive className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">存储空间</div>
-                  <div className="font-medium text-xs break-words leading-relaxed">{deviceInfo.storage}</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <MemoryStick className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">内存 (RAM)</div>
-                  <div className="font-medium text-sm">{deviceInfo.ram}</div>
-                </div>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                SDK {deviceInfo.sdkVersion}
               </div>
             </div>
-
-            {/* 硬件信息 - 第三行 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Cpu className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">处理器 (CPU)</div>
-                  <div className="font-medium text-sm break-words">{deviceInfo.cpu}</div>
-                </div>
+            <div className="p-4 rounded-lg bg-purple-500/5 border border-purple-500/10 dark:bg-purple-500/10">
+              <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">
+                内存 (RAM)
               </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <MonitorSmartphone className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">屏幕分辨率</div>
-                  <div className="font-medium text-sm">{deviceInfo.resolution}</div>
-                </div>
+              <div className="text-2xl font-bold text-foreground">
+                {deviceInfo.ram}
               </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <Terminal className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">内核版本</div>
-                  <div className="font-medium text-xs break-all">{deviceInfo.kernelVersion}</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <GitBranch className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">构建版本</div>
-                  <div className="font-medium text-xs break-all">{deviceInfo.buildNumber}</div>
-                </div>
+              <div className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap overflow-hidden text-ellipsis">
+                可用: 计算中...
               </div>
             </div>
-
-            {/* 其他信息 - 第四行 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
-                <CircuitBoard className="w-5 h-5 text-primary mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1">主板型号</div>
-                  <div className="font-medium text-sm">{deviceInfo.board}</div>
-                </div>
+            <div className="p-4 rounded-lg bg-orange-500/5 border border-orange-500/10 dark:bg-orange-500/10 col-span-2 md:col-span-2">
+              <div className="text-xs text-orange-600 dark:text-orange-400 font-medium mb-1">
+                设备型号
+              </div>
+              <div className="text-xl font-bold text-foreground truncate">
+                {deviceInfo.model}
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                {deviceInfo.manufacturer} · {deviceInfo.brand}
               </div>
             </div>
           </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            无法获取设备信息
+
+          {/* 详细属性列表 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            {/* 系统部分 */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2 mb-2">
+                系统软件
+              </h4>
+              <InfoItem
+                icon={Shield}
+                label="安全补丁"
+                value={deviceInfo.securityPatch}
+              />
+              <InfoItem
+                icon={Terminal}
+                label="内核版本"
+                value={deviceInfo.kernelVersion}
+              />
+              <InfoItem
+                icon={GitBranch}
+                label="构建版本"
+                value={deviceInfo.buildNumber}
+              />
+              <InfoItem
+                icon={CircuitBoard}
+                label="主板代号"
+                value={deviceInfo.board}
+              />
+            </div>
+
+            {/* 硬件部分 */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2 mb-2">
+                硬件配置
+              </h4>
+              <InfoItem icon={Cpu} label="处理器" value={deviceInfo.cpu} />
+              <InfoItem
+                icon={HardDrive}
+                label="存储空间"
+                value={deviceInfo.storage}
+              />
+              <InfoItem
+                icon={MonitorSmartphone}
+                label="屏幕分辨率"
+                value={deviceInfo.resolution}
+              />
+              <InfoItem
+                icon={Smartphone}
+                label="序列号"
+                value={deviceInfo.serialNumber}
+                copyable
+              />
+            </div>
           </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground bg-muted/20 rounded-xl">
+          <Info className="w-8 h-8 opacity-20 mb-2" />
+          <p className="text-sm">无法读取设备详细信息</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 辅助组件：信息行
+function InfoItem({
+  icon: Icon,
+  label,
+  value,
+  copyable,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  copyable?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between group py-1">
+      <div className="flex items-center gap-2.5 text-sm text-muted-foreground/80">
+        <Icon className="w-4 h-4 opacity-70" />
+        <span>{label}</span>
+      </div>
+      <div className="flex items-center gap-2 overflow-hidden pl-4">
+        <span
+          className="text-sm font-medium text-foreground truncate"
+          title={value}
+        >
+          {value || "未知"}
+        </span>
+        {copyable && value && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => {
+              navigator.clipboard.writeText(value);
+              toast.success("已复制");
+            }}
+          >
+            <Copy className="w-3 h-3" />
+          </Button>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

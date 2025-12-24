@@ -21,13 +21,24 @@ const AppIcon: React.FC<AppIconProps> = ({ package: pkg, size = 40 }) => {
 
   // 提取包名的首字母或关键词
   const getIconText = (packageName: string): string => {
-    // 尝试提取品牌关键词
-    const brands = ['miui', 'huawei', 'oppo', 'vivo', 'google', 'android', 'xiaomi'];
+    const lowerPkg = packageName.toLowerCase();
+
+    // 特殊处理小米/MIUI 相关
+    if (lowerPkg.includes('miui')) {
+      return 'MU';
+    }
+    if (lowerPkg.includes('xiaomi')) {
+      return 'MI';
+    }
+
+    // 其他品牌关键词
+    const brands = ['huawei', 'oppo', 'vivo', 'google', 'android'];
     for (const brand of brands) {
-      if (packageName.toLowerCase().includes(brand)) {
+      if (lowerPkg.includes(brand)) {
         return brand.substring(0, 2).toUpperCase();
       }
     }
+
     // 提取最后一个点后的内容
     const parts = packageName.split('.');
     const lastPart = parts[parts.length - 1];
