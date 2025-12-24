@@ -8,11 +8,21 @@ interface SidebarProps {
   disabled?: boolean;
 }
 
+import { getVersion } from "@tauri-apps/api/app";
+import { useEffect, useState } from "react";
+// ... imports
+
 export function Sidebar({
   activeSidebar,
   setActiveSidebar,
   disabled = false,
 }: SidebarProps) {
+  const [appVersion, setAppVersion] = useState("");
+
+  useEffect(() => {
+    getVersion().then((v) => setAppVersion(v));
+  }, []);
+
   return (
     <aside className="w-64 bg-card/30 backdrop-blur-xl border-r border-border/40 h-full flex flex-col justify-between transition-all duration-300">
       <div className="flex flex-col gap-6 p-4">
@@ -128,7 +138,7 @@ export function Sidebar({
                 关于软件
               </span>
               <span className="text-[10px] text-muted-foreground/40 font-mono">
-                v0.1.0 Beta
+                v{appVersion || "0.0.0"}
               </span>
             </div>
           </div>
