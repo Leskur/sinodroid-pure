@@ -1,5 +1,9 @@
 use anyhow::{Context, Result};
+#[cfg(unix)]
+use std::fs;
 use std::fs::File;
+#[cfg(unix)]
+use std::path::Path;
 use tauri::{AppHandle, Manager};
 use zip_extract::extract;
 

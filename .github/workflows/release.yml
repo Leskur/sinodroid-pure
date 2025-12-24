@@ -47,7 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: "SinoDroid Pure ${{ github.ref_name }}"
+          releaseName: ${{ github.ref_name }}
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
