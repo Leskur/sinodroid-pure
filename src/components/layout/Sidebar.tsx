@@ -16,33 +16,33 @@ export function Sidebar({
   return (
     <aside className="w-64 bg-card/30 backdrop-blur-xl border-r border-border/40 h-full flex flex-col justify-between transition-all duration-300">
       <div className="flex flex-col gap-6 p-4">
-        {/* Logo Area */}
+        {/* Brand Header */}
         <div
           className="flex items-center gap-3.5 px-2 py-2 select-none"
           data-tauri-drag-region
         >
           <div className="relative group">
-            <div className="absolute inset-0 bg-primary/20 rounded-xl blur-md group-hover:blur-lg transition-all duration-500 opacity-50" />
-            <div className="relative w-10 h-10 bg-gradient-to-br from-background via-muted/50 to-muted rounded-xl border border-white/10 shadow-lg flex items-center justify-center overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
+            <div className="absolute inset-0 bg-blue-500/20 rounded-xl blur-md group-hover:blur-lg transition-all duration-500 opacity-50" />
+            <div className="relative w-10 h-10 bg-gradient-to-br from-background via-blue-500/5 to-muted rounded-xl border border-blue-500/10 shadow-sm flex items-center justify-center overflow-hidden">
               <svg
-                className="w-5 h-5 drop-shadow-[0_0_10px_rgba(255,193,49,0.3)] transition-transform duration-500 group-hover:scale-110"
+                className="w-5 h-5 drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]"
                 fill="none"
                 viewBox="0 0 24 24"
               >
                 <defs>
                   <linearGradient
-                    id="logo-gradient"
+                    id="logo-blue"
                     x1="0%"
                     y1="0%"
                     x2="100%"
                     y2="100%"
                   >
-                    <stop offset="0%" stopColor="#FFC131" />
-                    <stop offset="100%" stopColor="#FB923C" />
+                    <stop offset="0%" stopColor="#22d3ee" />
+                    <stop offset="100%" stopColor="#3b82f6" />
                   </linearGradient>
                 </defs>
                 <path
-                  stroke="url(#logo-gradient)"
+                  stroke="url(#logo-blue)"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2.5}
@@ -52,11 +52,16 @@ export function Sidebar({
             </div>
           </div>
           <div className="flex flex-col justify-center">
-            <span className="text-[17px] font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground/70">
-              Sinodroid
-            </span>
-            <span className="text-[10px] font-medium text-muted-foreground/60 tracking-[0.2em] uppercase ml-0.5">
-              Ultimate Pure
+            <div className="flex items-baseline">
+              <span className="text-[16px] font-black tracking-tighter text-foreground">
+                SinoDroid
+              </span>
+              <span className="text-[16px] font-extralight tracking-tight text-blue-500 ml-1.5 opacity-90">
+                Pure
+              </span>
+            </div>
+            <span className="text-[10px] font-medium text-muted-foreground/50 tracking-[0.2em] ml-0.5 mt-0.5">
+              极简 · 纯净 · 自由
             </span>
           </div>
         </div>

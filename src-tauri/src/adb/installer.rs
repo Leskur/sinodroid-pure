@@ -14,10 +14,12 @@ pub fn init_platform_tools(app: &AppHandle) -> Result<()> {
 
     let resource_path = app
         .path()
-        .resolve("platform-tools.zip", tauri::path::BaseDirectory::Resource)
+        .resolve(
+            "resources/platform-tools.zip",
+            tauri::path::BaseDirectory::Resource,
+        )
         .context("Failed to resolve resource path")?;
 
-    eprintln!("[INIT] 解压 platform-tools.zip...");
     let file = File::open(&resource_path).context("Failed to open zip file")?;
     extract(
         file,
